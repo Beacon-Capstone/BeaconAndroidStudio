@@ -3,18 +3,22 @@ package com.capstone.while1.beaconandroidstudio;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
+
+    static boolean isLoggedIn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
+        //setContentView(R.layout.activity_login);
+        if (!isLoggedIn) {
+            //setContentView(R.layout.activity_login);
 
-    public void connect(View view){
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+
+        }
     }
 }

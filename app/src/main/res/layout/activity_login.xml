@@ -14,7 +14,7 @@
         android:hint="Username"
         android:inputType="textPersonName"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="180dp"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginRight="8dp"
@@ -22,7 +22,7 @@
         app:layout_constraintHorizontal_bias="0.503"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/loginPassInput"
-        app:layout_constraintVertical_bias="0.885" />
+        app:layout_constraintVertical_bias="0.789" />
 
     <EditText
         android:id="@+id/loginPassInput"
@@ -31,14 +31,49 @@
         android:ems="10"
         android:hint="Password"
         android:inputType="textPassword"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="0.466"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        android:layout_marginBottom="-8dp"
+        app:layout_constraintBottom_toTopOf="@+id/loginButton" />
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="216dp"
+        android:layout_height="48dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:onClick="login"
+        android:text="Login"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="44dp"
+        app:layout_constraintBottom_toTopOf="@+id/messageOutput" />
+
+    <TextView
+        android:id="@+id/registerPageLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="47dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:onClick="goToRegisterPage"
+        android:text="Don't have an account? | Register"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/messageOutput"
+        android:layout_width="78dp"
+        android:layout_height="23dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="76dp"
+        app:layout_constraintBottom_toTopOf="@+id/registerPageLink" />
 
 </android.support.constraint.ConstraintLayout>
