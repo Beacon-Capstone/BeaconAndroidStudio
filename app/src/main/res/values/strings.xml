@@ -5,4 +5,6 @@
     <string name="location_permission_denied">This application requires location permission in order to function properly.</string>
     <string name="permission_required_toast">Location permission is required for this application.</string>
     <string name="permission_rationale_location">Access to the location service is required fir this application.</string>
+    <string name="title_activity_map">Map</string>
+    <string name="action_settings">Settings</string>
 </resources>
