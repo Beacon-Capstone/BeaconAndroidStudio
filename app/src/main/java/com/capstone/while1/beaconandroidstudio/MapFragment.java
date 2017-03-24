@@ -27,9 +27,11 @@ import com.google.android.gms.maps.model.LatLng;
 public class MapFragment extends Fragment implements OnMyLocationButtonClickListener,
         OnLocationChangedListener {
 
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     MapView mMapView;
     private GoogleMap googleMap;
     private LocationManager lm;
+    private boolean mPermissionDenied = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

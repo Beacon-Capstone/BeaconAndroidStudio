@@ -1,0 +1,12 @@
+package com.capstone.while1.beaconandroidstudio;
+
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+
+public class PermissionActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+}
