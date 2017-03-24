@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 //        setContentView(R.layout.activity_main);
-        //setContentView(R.xml.pref_notification);
+
+//this causes the app to crash so I commented out when I merged homerLogin
+		//setContentView(R.xml.pref_notification);
     }
 }
