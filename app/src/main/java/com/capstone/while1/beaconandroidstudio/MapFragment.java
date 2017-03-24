@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -27,11 +26,9 @@ import com.google.android.gms.maps.model.LatLng;
 public class MapFragment extends Fragment implements OnMyLocationButtonClickListener,
         OnLocationChangedListener {
 
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    MapView mMapView;
+    private MapView mMapView;
     private GoogleMap googleMap;
     private LocationManager lm;
-    private boolean mPermissionDenied = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,40 +56,34 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         return rootView;
     }
 
+    @SuppressWarnings("MissingPermission")
     private void enableLocation() {
         if (googleMap != null) {
-            try {
-                googleMap.setMyLocationEnabled(true);
+            googleMap.setMyLocationEnabled(true);
+            lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    getLocation(location);
+                }
 
-                lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
-                    @SuppressWarnings("MissingPermission")
-                    @Override
-                    public void onLocationChanged(Location location) {
-                        getLocation(location);
-                    }
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
 
-                    @Override
-                    public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
 
-                    }
+                @Override
+                public void onProviderEnabled(String provider) {
 
-                    @Override
-                    public void onProviderEnabled(String provider) {
+                }
 
-                    }
+                @Override
+                public void onProviderDisabled(String provider) {
 
-                    @Override
-                    public void onProviderDisabled(String provider) {
-
-                    }
-                });
-                Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                getLocation(l);
-            } catch (SecurityException ex) {
-                Toast.makeText(getActivity(), "Test", Toast.LENGTH_SHORT).show();
-            }
-
+                }
+            });
+            Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            getLocation(l);
         }
     }
 

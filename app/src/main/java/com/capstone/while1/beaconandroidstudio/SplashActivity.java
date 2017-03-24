@@ -5,13 +5,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-
-/**
- * Created by AP047572 on 3/24/2017.
- */
 
 public class SplashActivity extends AppCompatActivity implements OnRequestPermissionsResultCallback {
     /**
@@ -21,18 +18,17 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
     private boolean mPermissionDenied = false;
 
     @SuppressWarnings("rawtypes")
-    public Class getNextActivityClass() {
+    private Class getNextActivityClass() {
         return MainActivity.class;
     }
 
-    @TargetApi(23)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /**
-         * On a post-Android 6.0 devices, check if the required permissions have
-         * been granted.
+        /*
+          On a post-Android 6.0 devices, check if the required permissions have
+          been granted.
          */
         if (Build.VERSION.SDK_INT >= 23 &&
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -45,11 +41,12 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
 
     @TargetApi(23)
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_REQUEST) {
             if (PermissionUtils.isPermissionGranted(permissions, grantResults,
                     android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Enable the my location layer if the permission has been granted.
+
+                // Enable the map layer if the permission has been granted.
                 startNextActivity();
             } else {
                 mPermissionDenied = true;
