@@ -1,6 +1,7 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.content.Intent;
+import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -20,5 +21,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
 
         }
+
+
+//        setContentView(R.layout.activity_main);
+        //setContentView(R.xml.pref_notification);
     }
 }
