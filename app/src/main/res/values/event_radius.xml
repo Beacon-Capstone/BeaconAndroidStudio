@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="radius_headings">
+        <item>0.2 miles</item>
+        <item>0.5 miles</item>
+        <item>1 mile</item>
+        <item>2 miles</item>
+        <item>5 miles</item>
+        <item>10 miles</item>
+        <item>20 miles</item>
+        <item>30 miles</item>
+    </string-array>
+
+    <string-array name="radius_values">
+        <item>0.2</item>
+        <item>0.5</item>
+        <item>1</item>
+        <item>2</item>
+        <item>5</item>
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+    </string-array>
+</resources>
