@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_settings:
                 Intent i = new Intent(this, SettingsActivity.class);
-                Log.d("Message", "here");
                 startActivity(i);
                 return true;
             default:
