@@ -70,14 +70,14 @@
         android:id="@+id/registerButton"
         android:layout_width="218dp"
         android:layout_height="42dp"
+        android:layout_marginBottom="18dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:onClick="register"
         android:text="Register"
+        app:layout_constraintBottom_toTopOf="@+id/messageOutput"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="18dp"
-        app:layout_constraintBottom_toTopOf="@+id/messageOutput" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <TextView
         android:id="@+id/loginPageLink"
