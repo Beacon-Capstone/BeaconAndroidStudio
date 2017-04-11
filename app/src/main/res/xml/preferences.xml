@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference android:title="Your Name"
-        android:key="username"
-        android:summary="Please provide your username"/>
     <PreferenceCategory android:title="Event Management">
         <SwitchPreference android:title="Wifi download only"
             android:summary="This will only download new events over wifi."
-            android:defaultValue="false"/>
+            android:defaultValue="false"
+            android:id="@+id/wifiBool"/>
 
         <ListPreference
             android:title="Event Range"
             android:summary="Select the radius around you in which events will appear."
             android:entryValues="@array/radius_values"
-            android:entries="@array/radius_headings"/>
+            android:entries="@array/radius_headings"
+            android:id="@+id/eventRadius"/>
 
         <ListPreference
             android:title="Refresh"
             android:summary="How often should we fetch new events for ya?"
             android:entries="@array/refresh_headings"
-            android:entryValues="@array/refresh_intervals"/>
+            android:entryValues="@array/refresh_intervals"
+            android:id="@+id/eventRefreshInterval"/>
 
 
     </PreferenceCategory>
@@ -27,9 +27,11 @@
         android:title="User Account Management">
         <EditTextPreference
             android:title="Starting Location"
-            android:summary="Choose where the app will open to"/>
+            android:summary="Choose where the app will open to"
+            android:id="@+id/startingLocation"/>
         <Preference
-            android:title="Logout"/>
+            android:title="Logout"
+            android:id="@+id/logout"/>
     </PreferenceCategory>
 
     <!--<ListPreference-->

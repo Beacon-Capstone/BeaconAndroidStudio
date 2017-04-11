@@ -37,8 +37,14 @@ public class SettingsActivity extends PreferenceActivity {
         public void onOptionsMenuClosed(Menu menu) {
             SharedPreferences sp = getActivity().getPreferences(Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sp.edit();
-            editor.
+            editor.putInt("wifiBool", R.id.wifiBool);
+            editor.putFloat("eventRadius", R.id.eventRadius);
+            editor.putFloat("eventRefreshInterval", R.id.eventRefreshInterval);
+            editor.putString("startingLocation", R.id.startingLocation);
+            editor.apply();
         }
+
+
 
     }
 }
