@@ -4,10 +4,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.location.Location;
+import android.view.View.OnClickListener;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-
+            addListenerOnButton();
 //        setContentView(R.layout.activity_main);
 
 //this causes the app to crash so I commented out when I merged homerLogin
@@ -50,5 +52,21 @@ public class MainActivity extends AppCompatActivity {
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.notify(l33tHacks, notification.build());
+    }
+
+    //ImageButton myButton = (ImageButton) findViewById(R.id.imageButton1);
+
+    public void addListenerOnButton() {
+        ImageButton myButton = (ImageButton) findViewById(R.id.imageButton1);
+        myButton.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+
+                Intent intent = new Intent
+                        (getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
