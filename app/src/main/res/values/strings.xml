@@ -12,4 +12,6 @@
     <string name="add_event_cancel">Cancel</string>
     <string name="okay">Ok</string>
     <string name="cancel">Cancel</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_register">RegisterActivity</string>
 </resources>
