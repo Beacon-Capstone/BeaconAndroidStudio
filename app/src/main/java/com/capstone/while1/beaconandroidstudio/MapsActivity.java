@@ -54,7 +54,8 @@ public class MapsActivity extends AppCompatActivity implements
                 @SuppressWarnings("MissingPermission")
                 @Override
                 public void onLocationChanged(Location location) {
-                    getLocation(location);
+                    Location l = getLocation(location);
+                    changeMapLocation(l);
                 }
 
                 @Override
@@ -73,11 +74,18 @@ public class MapsActivity extends AppCompatActivity implements
                 }
             });
             Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            getLocation(l);
+            changeMapLocation(l);
         }
     }
 
-    private void getLocation(Location location) {
+    private void changeMapLocation(Location location) {
+        if (location != null) {
+            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 16), 1500, null);
+        }
+    }
+
+    public Location getLocation(Location location) {
         if (location == null) {
             Criteria criteria = new Criteria();
             criteria.setAccuracy(Criteria.ACCURACY_COARSE);
@@ -85,12 +93,9 @@ public class MapsActivity extends AppCompatActivity implements
 
             //noinspection MissingPermission
             location = lm.getLastKnownLocation(provider);
-        }
-
-        if (location != null) {
-            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 16), 1500, null);
-        }
+            return location;
+        } else
+            return null;
     }
 
     @Override
