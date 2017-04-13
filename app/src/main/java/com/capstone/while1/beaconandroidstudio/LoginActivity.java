@@ -34,9 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void goToRegisterPage(View v) {
-        Log.d("BeaconAndroidStudio", "blahalksjdfl;aksdjf");
-
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
 
     }
