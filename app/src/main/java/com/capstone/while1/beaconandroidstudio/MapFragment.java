@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,7 +38,7 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         mMapView = (MapView) rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
-        mMapView.onResume(); // needed to get the map to display immediately
+//        mMapView.onResume(); // needed to get the map to display immediately
 
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
@@ -61,7 +62,7 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         if (googleMap != null) {
             googleMap.setMyLocationEnabled(true);
             lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
                     getLocation(location);
@@ -90,17 +91,14 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
     private void getLocation(Location location) {
         if (location == null) {
             Criteria criteria = new Criteria();
-            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            criteria.setAccuracy(Criteria.ACCURACY_FINE);
             String provider = lm.getBestProvider(criteria, true);
 
             //noinspection MissingPermission
             location = lm.getLastKnownLocation(provider);
         }
-
-        if (location != null) {
-            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 16), 1500, null);
-        }
+        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15), 1500, null);
     }
 
     @Override
