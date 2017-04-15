@@ -1,8 +1,8 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -23,7 +23,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.d("BeaconAndroidStudio", "userInput or passInput is null");
         } else {
             if (userInput.getText().toString().equals("user") && passInput.getText().toString().equals("pass")) {
-                MainActivity.isLoggedIn = true;
+                SavedPreferences.setUserName(getApplicationContext(), "user");
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
             } else {
