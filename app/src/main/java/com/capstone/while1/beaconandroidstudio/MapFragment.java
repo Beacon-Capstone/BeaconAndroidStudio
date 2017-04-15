@@ -1,5 +1,6 @@
 package com.capstone.while1.beaconandroidstudio;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
@@ -17,7 +18,10 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -48,6 +52,7 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
             public void onMapReady(GoogleMap mMap) {
                 googleMap = mMap;
                 enableLocation();
+                createMarker();
             }
         });
 
@@ -107,6 +112,23 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         }
     }
 
+    public void createMarker(){
+        //noinspection MissingPermission
+        Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        getLocation(l);
+        Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng((l.getLatitude() + .01), (l.getLongitude() + .01)))
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title("myMarker"));
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker arg0) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setTitle("You clicked this location!");
+                alert.show();
+                return true;
+            }
+        });
+
+    }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
