@@ -4,31 +4,31 @@
         <SwitchPreference android:title="Wifi download only"
             android:summary="This will only download new events over wifi."
             android:defaultValue="false"
-            android:id="@+id/wifiBool"/>
-
+            android:id="@+id/wifiBool"
+            android:key="wifiBool"/>
         <ListPreference
             android:title="Event Range"
             android:summary="Select the radius around you in which events will appear."
             android:entryValues="@array/radius_values"
             android:entries="@array/radius_headings"
-            android:id="@+id/eventRadius"/>
+            android:key="eventRadius"
+            android:id="@+id/eventRadius"
+            android:defaultValue="1"/>
 
         <ListPreference
             android:title="Refresh"
             android:summary="How often should we fetch new events for ya?"
             android:entries="@array/refresh_headings"
             android:entryValues="@array/refresh_intervals"
-            android:id="@+id/eventRefreshInterval"/>
+            android:id="@+id/eventRefreshInterval"
+            android:key="eventRefreshInterval"
+            android:defaultValue="5"/>
 
 
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="User Account Management">
-        <EditTextPreference
-            android:title="Starting Location"
-            android:summary="Choose where the app will open to"
-            android:id="@+id/startingLocation"/>
         <Preference
             android:title="Logout"
             android:id="@+id/logout"/>
