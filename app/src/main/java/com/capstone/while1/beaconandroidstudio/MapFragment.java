@@ -52,7 +52,12 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
             public void onMapReady(GoogleMap mMap) {
                 googleMap = mMap;
                 enableLocation();
-                createMarker();
+                String title = "Cool Event";
+                String description = "This event is the bomb-diggity";
+                //noinspection MissingPermission
+                Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                getLocation(l);
+                createMarker(title, description, (l.getLatitude() + .01), (l.getLongitude() + .01));
             }
         });
 
@@ -112,17 +117,18 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         }
     }
 
-    public void createMarker(){
+    public void createMarker(final String title, final String description, double latitude, double longitude){
         //noinspection MissingPermission
         Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         getLocation(l);
-        Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng((l.getLatitude() + .01), (l.getLongitude() + .01)))
-        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).title("myMarker"));
+        Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker arg0) {
                 AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setTitle("You clicked this location!");
+                alert.setTitle(title);
+                alert.setMessage(description);
                 alert.show();
                 return true;
             }
