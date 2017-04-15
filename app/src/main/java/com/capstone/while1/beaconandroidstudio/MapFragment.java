@@ -1,6 +1,9 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.content.IntentSender;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -28,7 +31,10 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -162,6 +168,24 @@ public class MapFragment extends Fragment implements
         }
     }
 
+    public void createMarker(final String title, final String description, double latitude, double longitude){
+        //noinspection MissingPermission
+        Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        getLocation(l);
+        Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker arg0) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setTitle(title);
+                alert.setMessage(description);
+                alert.show();
+                return true;
+            }
+        });
+
+    }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
