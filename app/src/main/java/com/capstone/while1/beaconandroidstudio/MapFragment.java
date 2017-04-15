@@ -168,24 +168,24 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    public void createMarker(final String title, final String description, double latitude, double longitude){
-        //noinspection MissingPermission
-        Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        getLocation(l);
-        Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
-        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker arg0) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setTitle(title);
-                alert.setMessage(description);
-                alert.show();
-                return true;
-            }
-        });
+//     public void createMarker(final String title, final String description, double latitude, double longitude){
+//         //noinspection MissingPermission
+//         Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//         getLocation(l);
+//         Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+//         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+//         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//             @Override
+//             public boolean onMarkerClick(Marker arg0) {
+//                 AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+//                 alert.setTitle(title);
+//                 alert.setMessage(description);
+//                 alert.show();
+//                 return true;
+//             }
+//         });
 
-    }
+//     }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
