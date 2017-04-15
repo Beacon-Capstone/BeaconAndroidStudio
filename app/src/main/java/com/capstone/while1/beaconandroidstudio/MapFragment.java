@@ -10,12 +10,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
-import com.google.android.gms.maps.LocationSource.OnLocationChangedListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -24,8 +22,7 @@ import com.google.android.gms.maps.model.LatLng;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MapFragment extends Fragment implements OnMyLocationButtonClickListener,
-        OnLocationChangedListener {
+public class MapFragment extends Fragment implements OnMyLocationButtonClickListener {
 
     private MapView mMapView;
     private GoogleMap googleMap;
@@ -38,7 +35,7 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         mMapView = (MapView) rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
-//        mMapView.onResume(); // needed to get the map to display immediately
+        mMapView.onResume(); // needed to get the map to display immediately
 
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
@@ -62,10 +59,12 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
         if (googleMap != null) {
             googleMap.setMyLocationEnabled(true);
             lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    getLocation(location);
+
+                    Location l = getLocation(location);
+                    updateMap(l);
                 }
 
                 @Override
@@ -85,10 +84,11 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
             });
             Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             getLocation(l);
+            updateMap(l);
         }
     }
 
-    private void getLocation(Location location) {
+    public Location getLocation(Location location) {
         if (location == null) {
             Criteria criteria = new Criteria();
             criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -97,8 +97,14 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
             //noinspection MissingPermission
             location = lm.getLastKnownLocation(provider);
         }
-        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15), 1500, null);
+        return location;
+    }
+
+    private void updateMap(Location location) {
+        if (location != null) {
+            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15), 1500, null);
+        }
     }
 
     @Override
@@ -128,10 +134,5 @@ public class MapFragment extends Fragment implements OnMyLocationButtonClickList
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        getLocation(location);
     }
 }

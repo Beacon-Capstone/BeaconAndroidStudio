@@ -19,7 +19,10 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
 
     @SuppressWarnings("rawtypes")
     private Class getNextActivityClass() {
-        return MainActivity.class;
+        if (SavedPreferences.getUserName(getApplicationContext()).length() == 0)
+            return LoginActivity.class;
+        else
+            return MainActivity.class;
     }
 
     @Override

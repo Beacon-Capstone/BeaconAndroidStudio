@@ -37,6 +37,7 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
+            android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".RegisterActivity"
@@ -44,7 +45,8 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="Settings"/>
+            android:label="Settings"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
