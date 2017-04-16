@@ -18,10 +18,19 @@
         android:ems="10"
         android:hint="Description"
         android:inputType="textPersonName" />
-
+<TableRow
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <Button
         android:id="@+id/createEventButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Create" />
+    <Button
+        android:id="@+id/cancelEventButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel" />
+</TableRow>
+
 </LinearLayout>
