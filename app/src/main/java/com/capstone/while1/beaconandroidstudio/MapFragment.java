@@ -5,13 +5,16 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
+import android.app.Dialog;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -168,19 +171,28 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    public void createMarker(final String title, final String description, double latitude, double longitude){
+    public void createMarker(final String title, final String description, double latitude, double longitude, final String creator){
         //noinspection MissingPermission
-        Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        getLocation(l);
         Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker arg0) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                /*AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
                 alert.setTitle(title);
                 alert.setMessage(description);
                 alert.show();
+                return true;*/
+                Dialog dialog = new Dialog(getActivity());
+                dialog.setTitle(title);
+                dialog.setContentView(R.layout.event_content_dialog);
+                TextView text = (TextView) dialog.findViewById(R.id.text);
+                text.setText("" + description + "");
+                TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+                text2.setGravity(Gravity.CENTER);
+                text2.setText("\n\nCreated By: " + creator);
+
+                dialog.show();
                 return true;
             }
         });
@@ -234,6 +246,11 @@ public class MapFragment extends Fragment implements
             Log.i(TAG, "in onConnected(), starting location updates");
             startLocationUpdates();
         }
+        String title = "Cool Event";
+        String description = "This event is super sweet";
+        String dummycreator = "AaronisCool26";
+
+        createMarker(title, description, (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), dummycreator);
     }
 
     @Override
