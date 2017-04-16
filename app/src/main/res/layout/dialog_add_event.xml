@@ -23,13 +23,14 @@
         android:id="@+id/createEventSeekBarText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Radius (Miles): "
+        android:text=" Radius (Miles): "
         android:textSize="18sp" />
 
     <SeekBar
         android:id="@+id/createEventSeekBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:max="9" />
 
     <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
