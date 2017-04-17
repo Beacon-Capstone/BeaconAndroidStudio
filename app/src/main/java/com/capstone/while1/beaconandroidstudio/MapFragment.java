@@ -11,12 +11,14 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -190,9 +192,12 @@ public class MapFragment extends Fragment implements
                 //Sets event description
                 TextView text = (TextView) dialog.findViewById(R.id.text);
                 text.setText("\t" + description);
+                text.setMovementMethod(new ScrollingMovementMethod());
                 TextView text2 = (TextView) dialog.findViewById(R.id.text2);
                 text2.setGravity(Gravity.CENTER);
                 text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
+
+
                 mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
                 final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
@@ -304,7 +309,11 @@ public class MapFragment extends Fragment implements
         }
         String title = "Cool Event";
         String description = "This event is super sweet and awesome and you should totally come because it is seriously " +
-                "insane just how cool this event is you guys. Like seriously get over here it will totally be the bomb";
+                "insane just how cool this event is you guys. Like seriously get over here it will totally be the bomb. Like " +
+                "it is so super cool and I can't wait to show you all what is going on at this event because it is so awesome." +
+                "If you don't come to this event I will be at your house waiting for you under your bed. You don't want to mess" +
+                "with me because you don't even want to know what I will do. Plus you should really come down because it's a beautiful" +
+                "day and everyone will have a good time.";
         String dummycreator = "AaronisCool26";
         int popularity = 250;
 
