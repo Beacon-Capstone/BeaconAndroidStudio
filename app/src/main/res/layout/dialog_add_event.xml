@@ -19,9 +19,39 @@
         android:hint="Description"
         android:inputType="textPersonName" />
 
-    <Button
-        android:id="@+id/createEventButton"
+    <TextView
+        android:id="@+id/createEventSeekBarText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create" />
+        android:text=" Radius (Miles): "
+        android:textSize="18sp" />
+
+    <SeekBar
+        android:id="@+id/createEventSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="9" />
+
+    <LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1">
+    <Button
+        android:id="@+id/createEventButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/cancelEventButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:layout_weight="1"/>
+</LinearLayout>
+
+
 </LinearLayout>
