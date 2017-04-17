@@ -7,12 +7,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,11 +34,62 @@ public class MainActivity extends AppCompatActivity {
         notification.setAutoCancel(true); //deletes notification after u click on it
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                AddEventFragment dialog = new AddEventFragment(); //Read Update
-                dialog.show(getSupportFragmentManager(), "Add Event Button");  //<-- See This!
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                final View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_event, null);
+
+                //placeholder for create event logic
+                final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
+                Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
+                createButton.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        eventName.setText("U SUCK AT HANZO SWITCH!");
+                    }
+                });
+
+                //seekbar stuff for radius
+                final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
+                SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
+                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    int progressValue = 0;
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        progressValue = progress + 1;
+                        textView.setText(" Radius (Miles): " + (progress + 1));
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        //textView.setText(" Radius (Miles): " + progressValue);
+                    }
+                });
+
+
+
+                builder.setView(dialogView);
+
+                final AlertDialog dialog = builder.create();
+
+                //cancel button, closes add event dialog, not needed but nice to have
+                Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
+                cancelButton.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+
+
+                dialog.show();
             }
         });
 
