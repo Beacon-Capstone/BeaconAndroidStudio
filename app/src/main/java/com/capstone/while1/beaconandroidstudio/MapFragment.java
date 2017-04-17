@@ -259,20 +259,20 @@ public class MapFragment extends Fragment implements
             }
         });
 
-//     }
+     }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
     }
 
     @Override
-    public void onStart() {
+    public void onStart(){
         super.onStart();
         mGoogleApiClient.connect();
     }
 
     @Override
-    public void onResume() {
+    public void onResume(){
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
