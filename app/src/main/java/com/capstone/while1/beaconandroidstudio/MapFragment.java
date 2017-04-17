@@ -186,6 +186,7 @@ public class MapFragment extends Fragment implements
             public boolean onMarkerClick(Marker arg0) {
                 //Creates dialog
                 final Dialog dialog = new Dialog(getActivity());
+                //Push Branch
                 //Sets event title
                 dialog.setTitle(title);
                 dialog.setContentView(R.layout.event_content_dialog);
