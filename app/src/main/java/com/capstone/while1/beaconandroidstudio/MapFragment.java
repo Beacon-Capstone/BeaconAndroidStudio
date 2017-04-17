@@ -253,7 +253,7 @@ public class MapFragment extends Fragment implements
             }
         });
 
-    }
+//     }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
