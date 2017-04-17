@@ -197,12 +197,26 @@ public class MapFragment extends Fragment implements
                 final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
                 final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
                 final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                final boolean[] upvote = {false, true, false};
+                final boolean[] downvote = {false, true, false};
                 //User has clicked the "upvote button"
                 up.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        up.setColorFilter(Color.GREEN);
-                        down.setColorFilter(null);
+                        if(upvote[0] == false) {
+                            up.setColorFilter(Color.GREEN);
+                            down.setColorFilter(null);
+                            upvote[0] = upvote[1];
+                            downvote[0] = downvote[2];
+                            //Send upvote to DB
+                            //Retract downvote from DB
+                        }
+                        //Upvote is "unvoted"
+                        else{
+                            up.setColorFilter(null);
+                            upvote[0] = upvote[2];
+                            //retract upvote from DB
+                        }
                     }
                 });
 
@@ -210,8 +224,20 @@ public class MapFragment extends Fragment implements
                 down.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        down.setColorFilter(Color.RED);
-                        up.setColorFilter(null);
+                        if(downvote[0] == false) {
+                            down.setColorFilter(Color.RED);
+                            up.setColorFilter(null);
+                            downvote[0] = downvote[1];
+                            upvote[0] = upvote[2];
+                            //Send downvote to DB
+                            //Retract upvote from DB
+                        }
+                        //Downvote is "unvoted"
+                        else{
+                            down.setColorFilter(null);
+                            downvote[0] = downvote[2];
+                            //Retract downvote from DB
+                        }
                     }
                 });
 
