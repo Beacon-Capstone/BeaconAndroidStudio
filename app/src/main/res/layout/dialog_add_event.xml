@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="15dp"
+    android:paddingBottom="15dp"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp">
 
     <EditText
         android:id="@+id/createEventName"
@@ -14,23 +19,29 @@
     <EditText
         android:id="@+id/createEventDescription"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="120dp"
         android:ems="10"
+        android:gravity="top"
         android:hint="Description"
-        android:inputType="textPersonName" />
+        android:inputType="textMultiLine"
+        android:lines="7"
+        android:scrollbarAlwaysDrawVerticalTrack="false"
+        android:scrollbars="vertical"
+        android:selectAllOnFocus="false"
+        android:textAlignment="viewStart" />
+    <!--
+        <TextView
+            android:id="@+id/createEventSeekBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Radius (Miles): "
+            android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/createEventSeekBarText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=" Radius (Miles): "
-        android:textSize="18sp" />
-
-    <SeekBar
-        android:id="@+id/createEventSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="9" />
+        <SeekBar
+            android:id="@+id/createEventSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="9" /> -->
 
     <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
