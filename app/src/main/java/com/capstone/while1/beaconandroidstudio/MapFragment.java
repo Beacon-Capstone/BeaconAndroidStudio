@@ -3,15 +3,23 @@ package com.capstone.while1.beaconandroidstudio;
 import android.content.IntentSender;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
+import android.app.Dialog;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -168,37 +176,103 @@ public class MapFragment extends Fragment implements
         }
     }
 
-//     public void createMarker(final String title, final String description, double latitude, double longitude){
-//         //noinspection MissingPermission
-//         Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//         getLocation(l);
-//         Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
-//         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-//         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//             @Override
-//             public boolean onMarkerClick(Marker arg0) {
-//                 AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-//                 alert.setTitle(title);
-//                 alert.setMessage(description);
-//                 alert.show();
-//                 return true;
-//             }
-//         });
+    public void createMarker(final String title, final String description, double latitude, double longitude, final String creator, final int popularity){
+        //noinspection MissingPermission
+        //Adds marker to map based on latitude and longitude parameters
+        final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker arg0) {
+                //Creates dialog
+                final Dialog dialog = new Dialog(getActivity());
+                //Push Branch
+                //Sets event title
+                dialog.setTitle(title);
+                dialog.setContentView(R.layout.event_content_dialog);
+                //Sets event description
+                TextView text = (TextView) dialog.findViewById(R.id.text);
+                text.setText(description);
+                text.setMovementMethod(new ScrollingMovementMethod());
+                TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+                text2.setGravity(Gravity.CENTER);
+                text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
 
-//     }
+
+                mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
+                final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
+                final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                final boolean[] upvote = {false, true, false};
+                final boolean[] downvote = {false, true, false};
+                //User has clicked the "upvote button"
+                up.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(upvote[0] == false) {
+                            up.setColorFilter(Color.GREEN);
+                            down.setColorFilter(null);
+                            upvote[0] = upvote[1];
+                            downvote[0] = downvote[2];
+                            //Send upvote to DB
+                            //Retract downvote from DB
+                        }
+                        //Upvote is "unvoted"
+                        else{
+                            up.setColorFilter(null);
+                            upvote[0] = upvote[2];
+                            //retract upvote from DB
+                        }
+                    }
+                });
+
+                //User clicked "downvote button"
+                down.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(downvote[0] == false) {
+                            down.setColorFilter(Color.RED);
+                            up.setColorFilter(null);
+                            downvote[0] = downvote[1];
+                            upvote[0] = upvote[2];
+                            //Send downvote to DB
+                            //Retract upvote from DB
+                        }
+                        //Downvote is "unvoted"
+                        else{
+                            down.setColorFilter(null);
+                            downvote[0] = downvote[2];
+                            //Retract downvote from DB
+                        }
+                    }
+                });
+
+                //User clicked "cancel button"
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+                return true;
+            }
+        });
+
+     }
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
     }
 
     @Override
-    public void onStart() {
+    public void onStart(){
         super.onStart();
         mGoogleApiClient.connect();
     }
 
     @Override
-    public void onResume() {
+    public void onResume(){
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
@@ -234,6 +308,13 @@ public class MapFragment extends Fragment implements
             Log.i(TAG, "in onConnected(), starting location updates");
             startLocationUpdates();
         }
+        String title = "Capstone Presentation";
+        String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
+                "now you're paying too much attention to the slides and not what we're saying.";
+        String dummycreator = "AaronisCool26";
+        int popularity = 250;
+
+        createMarker(title, description, (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), dummycreator, popularity);
     }
 
     @Override
