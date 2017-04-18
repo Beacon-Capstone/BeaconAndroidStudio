@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                         eventName.setText("U SUCK AT HANZO SWITCH!");
                     }
                 });
-
+/*
                 //seekbar stuff for radius
                 final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
                 SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         //textView.setText(" Radius (Miles): " + progressValue);
                     }
                 });
-
+*/
 
 
                 builder.setView(dialogView);
