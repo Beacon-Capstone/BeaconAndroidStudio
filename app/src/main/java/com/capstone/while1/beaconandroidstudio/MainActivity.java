@@ -3,10 +3,14 @@ package com.capstone.while1.beaconandroidstudio;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.support.annotation.ColorInt;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -99,12 +103,23 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTestBtn(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
-
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
         builder.setView(dialogView);
 
-        final AlertDialog dialog = builder.create();
+
+        AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public void onClickDelBtn(View v) {
+        Context context = getApplicationContext();
+        int white = ContextCompat.getColor(context, R.color.colorWhite);
+        int delRed = ContextCompat.getColor(context, R.color.deleteColor);
+
+        Button delBtn = (Button) v.findViewById(R.id.deleteEventBtn);
+        delBtn.setTextColor(white);
+        delBtn.getBackground().setTint(delRed);
+        delBtn.setText("Delete (Hold)");
     }
 
     @Override

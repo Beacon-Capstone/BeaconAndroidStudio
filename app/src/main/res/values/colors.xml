@@ -4,5 +4,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#306FC0</color>
     <color name="colorWhite">#ffffff</color>
-    <color name="deleteColor">#a7101f</color>
+    <color name="deleteColor">#930e1c</color>
+    <color name="defaultBtnColor">#cdcece</color>
+    <color name="materialRed800">#c62828</color>
 </resources>

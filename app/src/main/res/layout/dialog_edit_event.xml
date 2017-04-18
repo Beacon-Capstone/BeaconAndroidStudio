@@ -6,7 +6,8 @@
     android:paddingTop="15dp"
     android:paddingBottom="15dp"
     android:paddingLeft="15dp"
-    android:paddingRight="15dp">
+    android:paddingRight="15dp"
+    android:weightSum="1">
 
     <EditText
         android:id="@+id/createEventName"
@@ -37,20 +38,66 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Popularity: 250"
+        android:textColor="@color/common_google_signin_btn_text_light_pressed"
+        android:textSize="18sp" />
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.46">
+
+        <Button
+            android:id="@+id/saveEditEventBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/cancelEditEventBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/emptyTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@android:color/darker_gray"/>
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:paddingTop="6dp"
+        android:text="Danger Zone"
+        android:textAlignment="center"
+        android:textColor="@color/common_google_signin_btn_text_light_pressed"
         android:textSize="18sp" />
 
     <Button
         android:id="@+id/deleteEventBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/deleteColor"
+        android:backgroundTint="@color/defaultBtnColor"
+        android:elevation="0dp"
+        android:onClick="onClickDelBtn"
         android:paddingBottom="10dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:paddingTop="10dp"
         android:text="Delete"
         android:textAlignment="center"
-        android:textColor="@color/colorWhite"
+        android:textColor="@color/materialRed800"
         android:textStyle="bold" />
     <!--
         <TextView
