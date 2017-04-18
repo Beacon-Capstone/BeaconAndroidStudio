@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="15dp"
+    android:paddingBottom="15dp"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp">
+
+    <EditText
+        android:id="@+id/createEventName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Event Name"
+        android:inputType="textPersonName"
+        android:text="Capstone Presentation" />
+
+    <EditText
+        android:id="@+id/createEventDescription"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="Description"
+        android:inputType="textMultiLine"
+        android:lines="7"
+        android:scrollbarAlwaysDrawVerticalTrack="false"
+        android:scrollbars="vertical"
+        android:selectAllOnFocus="false"
+        android:text="This is the event that we're using for our capstone presentation. If you're reading this right now you're paying too much attention to the slides and not what we're saying."
+        android:textAlignment="viewStart" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Popularity: 250"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/deleteEventBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/deleteColor"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="10dp"
+        android:text="Delete"
+        android:textAlignment="center"
+        android:textColor="@color/colorWhite"
+        android:textStyle="bold" />
+    <!--
+        <TextView
+            android:id="@+id/createEventSeekBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Radius (Miles): "
+            android:textSize="18sp" />
+
+        <SeekBar
+            android:id="@+id/createEventSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="9" /> -->
+
+
+
+
+</LinearLayout>
