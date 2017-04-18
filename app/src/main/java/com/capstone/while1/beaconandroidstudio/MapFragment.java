@@ -192,7 +192,7 @@ public class MapFragment extends Fragment implements
                 dialog.setContentView(R.layout.event_content_dialog);
                 //Sets event description
                 TextView text = (TextView) dialog.findViewById(R.id.text);
-                text.setText("\t" + description);
+                text.setText(description);
                 text.setMovementMethod(new ScrollingMovementMethod());
                 TextView text2 = (TextView) dialog.findViewById(R.id.text2);
                 text2.setGravity(Gravity.CENTER);
@@ -308,13 +308,9 @@ public class MapFragment extends Fragment implements
             Log.i(TAG, "in onConnected(), starting location updates");
             startLocationUpdates();
         }
-        String title = "Cool Event";
-        String description = "This event is super sweet and awesome and you should totally come because it is seriously " +
-                "insane just how cool this event is you guys. Like seriously get over here it will totally be the bomb. Like " +
-                "it is so super cool and I can't wait to show you all what is going on at this event because it is so awesome." +
-                "If you don't come to this event I will be at your house waiting for you under your bed. You don't want to mess" +
-                "with me because you don't even want to know what I will do. Plus you should really come down because it's a beautiful" +
-                "day and everyone will have a good time.";
+        String title = "Capstone Presentation";
+        String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
+                "now you're paying too much attention to the slides and not what we're saying.";
         String dummycreator = "AaronisCool26";
         int popularity = 250;
 
