@@ -1,5 +1,5 @@
 package com.capstone.while1.beaconandroidstudio;
-
+//Aaron Whaley
 import android.content.IntentSender;
 import android.app.AlertDialog;
 import android.content.Context;
