@@ -113,19 +113,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTestBtn(View view) {
+        //create alertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
         builder.setView(dialogView);
+        final AlertDialog dialog = builder.create();
 
+        //button/input logic
         Context context = getApplicationContext();
         final int white = ContextCompat.getColor(context, R.color.colorWhite);
         final int delRed = ContextCompat.getColor(context, R.color.deleteColor);
 
-        Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
+        Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //code for updating event in database
+                dialog.dismiss();
+            }
+        });
+
+        Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEditEventBtn);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //user doesn't want to save changes, close dialog
+                dialog.dismiss();
+            }
+        });
+
+
+        final Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Button delBtn = (Button) dialogView.findViewById(R.id.deleteEventBtn);
+                Button delBtn = deleteButton;
                 delBtn.setTextColor(white);
                 delBtn.getBackground().setTint(delRed);
                 delBtn.setText("Delete (Hold)");
@@ -155,8 +177,15 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case MotionEvent.ACTION_UP:
                                 if (progressHandler == null) return true;
+                                if (progress < 100) {
+                                    delDonut.setDonut_progress((progress = 0) + "");
+                                }
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
+                                if (progress >= 100) {
+                                    //delete event in database and on local device
+                                    dialog.dismiss();
+                                }
                                 // End
                                 break;
                         }
@@ -166,12 +195,14 @@ public class MainActivity extends AppCompatActivity {
                     Runnable progressUp = new Runnable() {
                         @Override public void run() {
                             if (progress < 100) {
-                                delDonut.setDonut_progress((progress+=1) + "");
+                                delDonut.setDonut_progress((progress += 1) + "");
                                 progressHandler.postDelayed(this, 25);
                             } else {
                                 debugPrint("hey i'm in runnable at/past 100");
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
+                                //delete event function call
+                                dialog.dismiss();
                             }
                         }
                     };
@@ -179,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        AlertDialog dialog = builder.create();
+        //display dialog
         dialog.show();
     }
 
