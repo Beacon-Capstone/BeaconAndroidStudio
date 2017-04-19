@@ -3,21 +3,38 @@ package com.capstone.while1.beaconandroidstudio;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.github.lzyzsd.circleprogress.DonutProgress;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,69 +49,190 @@ public class MainActivity extends AppCompatActivity {
 
         notification = new NotificationCompat.Builder(this);
         notification.setAutoCancel(true); //deletes notification after u click on it
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        fab.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                final View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_event, null);
-
-                //placeholder for create event logic
-                final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
-                Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
-                createButton.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        eventName.setText("U SUCK AT HANZO SWITCH!");
-                    }
-                });
-/*
-                //seekbar stuff for radius
-                final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
-                SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
-                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                    int progressValue = 0;
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        progressValue = progress + 1;
-                        textView.setText(" Radius (Miles): " + (progress + 1));
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                        //textView.setText(" Radius (Miles): " + progressValue);
-                    }
-                });
-*/
-
-
-                builder.setView(dialogView);
-
-                final AlertDialog dialog = builder.create();
-
-                //cancel button, closes add event dialog, not needed but nice to have
-                Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
-                cancelButton.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-
-
-
-                dialog.show();
-            }
-        });
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//
+//        fab.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view) {
+//                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//                final View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_event, null);
+//
+//                //placeholder for create event logic
+//                final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
+//                Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
+//                createButton.setOnClickListener(new View.OnClickListener(){
+//                    @Override
+//                    public void onClick(View v) {
+//                        eventName.setText("U SUCK AT HANZO SWITCH!");
+//                    }
+//                });
+///*
+//                //seekbar stuff for radius
+//                final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
+//                SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
+//                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//                    int progressValue = 0;
+//                    @Override
+//                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                        progressValue = progress + 1;
+//                        textView.setText(" Radius (Miles): " + (progress + 1));
+//                    }
+//
+//                    @Override
+//                    public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onStopTrackingTouch(SeekBar seekBar) {
+//                        //textView.setText(" Radius (Miles): " + progressValue);
+//                    }
+//                });
+//*/
+//
+//
+//                builder.setView(dialogView);
+//
+//                final AlertDialog dialog = builder.create();
+//
+//                //cancel button, closes add event dialog, not needed but nice to have
+//                Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
+//                cancelButton.setOnClickListener(new View.OnClickListener(){
+//                    @Override
+//                    public void onClick(View v) {
+//                        dialog.dismiss();
+//                    }
+//                });
+//
+//
+//
+//                dialog.show();
+//            }
+//        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+    }
+
+    public void debugPrint(String message) {
+        Log.d("BeaconAndroidStudio", message);
+    }
+
+    public void onTestBtn(View view) {
+        //create alertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
+        builder.setView(dialogView);
+        final AlertDialog dialog = builder.create();
+
+        //button/input logic
+        final Context context = getApplicationContext();
+        final int white = ContextCompat.getColor(context, R.color.colorWhite);
+        final int delRed = ContextCompat.getColor(context, R.color.deleteColor);
+
+        final EditText eventTitle = (EditText) dialogView.findViewById(R.id.editEventName);
+        final EditText eventDescription = (EditText) dialogView.findViewById(R.id.editEventDescription);
+
+        String stringNotFound = "STRING_NOT_FOUND";
+        String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
+        String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
+
+        eventTitle.setText(title);
+        eventDescription.setText(description);
+
+        Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //update user's own event on device
+                //save user made event as 2 strings (name and description)
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", eventTitle.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", eventDescription.getText().toString()).apply();
+
+                //!!!!need code for updating event in database
+                dialog.dismiss();
+            }
+        });
+
+        Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEditEventBtn);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //user doesn't want to save changes, close dialog
+                dialog.dismiss();
+            }
+        });
+
+
+        final Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Button delBtn = deleteButton;
+                delBtn.setTextColor(white);
+                delBtn.getBackground().setTint(delRed);
+                delBtn.setText("Delete (Hold)");
+
+                final DonutProgress donutProgress = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
+                donutProgress.setVisibility(View.VISIBLE);
+
+                delBtn.setOnTouchListener(new View.OnTouchListener() {
+                    private Handler progressHandler;
+                    private DonutProgress delDonut;
+                    private int progress = 0;
+
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (delDonut == null) {
+                            delDonut = donutProgress;
+                        }
+                        switch(event.getAction()) {
+                            case MotionEvent.ACTION_DOWN:
+                                if (progressHandler != null) return true;
+                                if (progress < 100) {
+                                    progressHandler = new Handler();
+                                    progressHandler.postDelayed(progressUp, 25);
+                                } else {
+                                    debugPrint("hey i'm at/past 100");
+                                }
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                if (progressHandler == null) return true;
+                                if (progress < 100) {
+                                    delDonut.setDonut_progress((progress = 0) + "");
+                                }
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                                if (progress >= 100) {
+                                    //delete event in database and on local device
+                                    dialog.dismiss();
+                                }
+                                // End
+                                break;
+                        }
+                        return false;
+                    }
+
+                    Runnable progressUp = new Runnable() {
+                        @Override public void run() {
+                            if (progress < 100) {
+                                delDonut.setDonut_progress((progress += 1) + "");
+                                progressHandler.postDelayed(this, 25);
+                            } else {
+                                debugPrint("hey i'm in runnable at/past 100");
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                                //delete event function call
+                                dialog.dismiss();
+                            }
+                        }
+                    };
+                });
+            }
+        });
+
+        //display dialog
+        dialog.show();
     }
 
     @Override
