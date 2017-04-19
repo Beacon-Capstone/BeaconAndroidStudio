@@ -18,8 +18,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="Event Name"
-        android:inputType="textPersonName"
-        android:text="Capstone Presentation" />
+        android:inputType="textPersonName" />
 
     <EditText
         android:id="@+id/editEventDescription"
@@ -33,7 +32,6 @@
         android:scrollbarAlwaysDrawVerticalTrack="false"
         android:scrollbars="vertical"
         android:selectAllOnFocus="false"
-        android:text="This is the event that we're using for our capstone presentation. If you're reading this right now you're paying too much attention to the slides and not what we're saying."
         android:textAlignment="viewStart" />
 
     <TextView

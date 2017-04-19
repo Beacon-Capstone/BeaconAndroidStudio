@@ -152,12 +152,12 @@ public class MainActivity extends AppCompatActivity {
         final EditText eventTitle = (EditText) dialogView.findViewById(R.id.editEventName);
         final EditText eventDescription = (EditText) dialogView.findViewById(R.id.editEventDescription);
 
+        //this hack was suggested by the android studio IDE to bypass the whole variable needs to be final if it's in an inner class thing (thanks java for being so strict...)
+        final String[] title = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound)};
+        final String[] description = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound)};
 
-        String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
-        String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
-
-        eventTitle.setText(title);
-        eventDescription.setText(description);
+        eventTitle.setText(title[0]);
+        eventDescription.setText(description[0]);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -165,11 +165,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //update user's own event on device
                 //save user made event as 2 strings (name and description)
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", eventTitle.getText().toString()).apply();
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", eventDescription.getText().toString()).apply();
+                title[0] = eventTitle.getText().toString();
+                description[0] = eventDescription.getText().toString();
 
-                //!!!!need code for updating event in database
-                dialog.dismiss();
+                if (!title[0].equals("") && !description[0].equals("")) {
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title[0]).apply();
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description[0]).apply();
+
+                    //!!!!need code for updating event in database
+                    dialog.dismiss();
+                }
             }
         });
 
