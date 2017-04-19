@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
@@ -14,9 +15,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -105,6 +108,10 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
     }
 
+    public void debugPrint(String message) {
+        Log.d("BeaconAndroidStudio", message);
+    }
+
     public void onTestBtn(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
@@ -123,8 +130,52 @@ public class MainActivity extends AppCompatActivity {
                 delBtn.getBackground().setTint(delRed);
                 delBtn.setText("Delete (Hold)");
 
-                DonutProgress delDonut = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
-                delDonut.setVisibility(View.VISIBLE);
+                final DonutProgress donutProgress = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
+                donutProgress.setVisibility(View.VISIBLE);
+
+                delBtn.setOnTouchListener(new View.OnTouchListener() {
+                    private Handler progressHandler;
+                    private DonutProgress delDonut;
+                    private int progress = 0;
+
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (delDonut == null) {
+                            delDonut = donutProgress;
+                        }
+                        switch(event.getAction()) {
+                            case MotionEvent.ACTION_DOWN:
+                                if (progressHandler != null) return true;
+                                if (progress < 100) {
+                                    progressHandler = new Handler();
+                                    progressHandler.postDelayed(progressUp, 25);
+                                } else {
+                                    debugPrint("hey i'm at/past 100");
+                                }
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                if (progressHandler == null) return true;
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                                // End
+                                break;
+                        }
+                        return false;
+                    }
+
+                    Runnable progressUp = new Runnable() {
+                        @Override public void run() {
+                            if (progress < 100) {
+                                delDonut.setDonut_progress((progress+=1) + "");
+                                progressHandler.postDelayed(this, 25);
+                            } else {
+                                debugPrint("hey i'm in runnable at/past 100");
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                            }
+                        }
+                    };
+                });
             }
         });
 
