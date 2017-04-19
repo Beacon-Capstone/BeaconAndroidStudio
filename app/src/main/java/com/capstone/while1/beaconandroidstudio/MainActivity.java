@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -29,6 +31,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -120,15 +126,30 @@ public class MainActivity extends AppCompatActivity {
         final AlertDialog dialog = builder.create();
 
         //button/input logic
-        Context context = getApplicationContext();
+        final Context context = getApplicationContext();
         final int white = ContextCompat.getColor(context, R.color.colorWhite);
         final int delRed = ContextCompat.getColor(context, R.color.deleteColor);
+
+        final EditText eventTitle = (EditText) dialogView.findViewById(R.id.editEventName);
+        final EditText eventDescription = (EditText) dialogView.findViewById(R.id.editEventDescription);
+
+        String stringNotFound = "STRING_NOT_FOUND";
+        String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
+        String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
+
+        eventTitle.setText(title);
+        eventDescription.setText(description);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //code for updating event in database
+                //update user's own event on device
+                //save user made event as 2 strings (name and description)
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", eventTitle.getText().toString()).apply();
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", eventDescription.getText().toString()).apply();
+
+                //!!!!need code for updating event in database
                 dialog.dismiss();
             }
         });

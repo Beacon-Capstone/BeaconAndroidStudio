@@ -13,7 +13,7 @@
     android:weightSum="1">
 
     <EditText
-        android:id="@+id/createEventName"
+        android:id="@+id/editEventName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -22,7 +22,7 @@
         android:text="Capstone Presentation" />
 
     <EditText
-        android:id="@+id/createEventDescription"
+        android:id="@+id/editEventDescription"
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:ems="10"
