@@ -37,9 +37,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-
+    public static final String stringNotFound = "STRING_NOT_FOUND";
     private static final int l33tHacks = 12345;
-    static boolean isLoggedIn = false;
     NotificationCompat.Builder notification;
 
     @Override
@@ -49,66 +48,21 @@ public class MainActivity extends AppCompatActivity {
 
         notification = new NotificationCompat.Builder(this);
         notification.setAutoCancel(true); //deletes notification after u click on it
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//
-//        fab.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View view) {
-//                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//                final View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_event, null);
-//
-//                //placeholder for create event logic
-//                final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
-//                Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
-//                createButton.setOnClickListener(new View.OnClickListener(){
-//                    @Override
-//                    public void onClick(View v) {
-//                        eventName.setText("U SUCK AT HANZO SWITCH!");
-//                    }
-//                });
-///*
-//                //seekbar stuff for radius
-//                final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
-//                SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
-//                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//                    int progressValue = 0;
-//                    @Override
-//                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                        progressValue = progress + 1;
-//                        textView.setText(" Radius (Miles): " + (progress + 1));
-//                    }
-//
-//                    @Override
-//                    public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onStopTrackingTouch(SeekBar seekBar) {
-//                        //textView.setText(" Radius (Miles): " + progressValue);
-//                    }
-//                });
-//*/
-//
-//
-//                builder.setView(dialogView);
-//
-//                final AlertDialog dialog = builder.create();
-//
-//                //cancel button, closes add event dialog, not needed but nice to have
-//                Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
-//                cancelButton.setOnClickListener(new View.OnClickListener(){
-//                    @Override
-//                    public void onClick(View v) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//
-//
-//
-//                dialog.show();
-//            }
-//        });
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            Context context = getApplicationContext();
+            @Override
+            public void onClick(View v) {
+                String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
+                String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
+                if (title.equals(stringNotFound) && description.equals(stringNotFound)) {
+                    onAddEvent(v);
+                } else {
+                    onEditEvent(v);
+                }
+            }
+        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -118,7 +72,72 @@ public class MainActivity extends AppCompatActivity {
         Log.d("BeaconAndroidStudio", message);
     }
 
-    public void onTestBtn(View view) {
+    public void onAddEvent(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        final View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_event, null);
+        builder.setView(dialogView);
+
+        final AlertDialog dialog = builder.create();
+        final Context context = getApplicationContext();
+
+        //placeholder for create event logic
+        final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
+        final EditText eventDescription = (EditText) dialogView.findViewById(R.id.createEventDescription);
+
+        Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
+        createButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                String title = eventName.getText().toString();
+                String description = eventDescription.getText().toString();
+
+                // both title and description need something in their fields, don't even close dialog if one of the fields is empty (need to add more error handling (prevent whitespace characters only etc.)
+                if (!title.equals("") && !description.equals("")) {
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title).apply();
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description).apply();
+                    dialog.dismiss();
+                }
+            }
+        });
+/*
+                //seekbar stuff for radius
+                final TextView textView = (TextView)dialogView.findViewById(R.id.createEventSeekBarText);
+                SeekBar seekBar = (SeekBar)dialogView.findViewById(R.id.createEventSeekBar);
+                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    int progressValue = 0;
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        progressValue = progress + 1;
+                        textView.setText(" Radius (Miles): " + (progress + 1));
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        //textView.setText(" Radius (Miles): " + progressValue);
+                    }
+                });
+*/
+
+        //cancel button, closes add event dialog, not needed but nice to have
+        Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
+        cancelButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+
+        dialog.show();
+    }
+
+    public void onEditEvent(View view) {
         //create alertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
@@ -133,12 +152,12 @@ public class MainActivity extends AppCompatActivity {
         final EditText eventTitle = (EditText) dialogView.findViewById(R.id.editEventName);
         final EditText eventDescription = (EditText) dialogView.findViewById(R.id.editEventDescription);
 
-        String stringNotFound = "STRING_NOT_FOUND";
-        String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
-        String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
+        //this hack was suggested by the android studio IDE to bypass the whole variable needs to be final if it's in an inner class thing (thanks java for being so strict...)
+        final String[] title = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound)};
+        final String[] description = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound)};
 
-        eventTitle.setText(title);
-        eventDescription.setText(description);
+        eventTitle.setText(title[0]);
+        eventDescription.setText(description[0]);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -146,11 +165,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //update user's own event on device
                 //save user made event as 2 strings (name and description)
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", eventTitle.getText().toString()).apply();
-                PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", eventDescription.getText().toString()).apply();
+                title[0] = eventTitle.getText().toString();
+                description[0] = eventDescription.getText().toString();
 
-                //!!!!need code for updating event in database
-                dialog.dismiss();
+                if (!title[0].equals("") && !description[0].equals("")) {
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title[0]).apply();
+                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description[0]).apply();
+
+                    //!!!!need code for updating event in database
+                    dialog.dismiss();
+                }
             }
         });
 
@@ -223,10 +247,17 @@ public class MainActivity extends AppCompatActivity {
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
+                                deleteEvent();
                                 dialog.dismiss();
                             }
                         }
                     };
+
+                    //place holder for actual deleting event in database (right now just deletes it 'locally')
+                    void deleteEvent() {
+                        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("myEventTitle").apply();
+                        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("myEventDescription").apply();
+                    }
                 });
             }
         });
