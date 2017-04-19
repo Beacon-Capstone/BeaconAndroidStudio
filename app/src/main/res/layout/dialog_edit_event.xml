@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:id="@+id/editEventDialogLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="15dp"
+    android:gravity="center"
+    android:orientation="vertical"
     android:paddingBottom="15dp"
     android:paddingLeft="15dp"
     android:paddingRight="15dp"
+    android:paddingTop="15dp"
     android:weightSum="1">
 
     <EditText
@@ -40,12 +42,12 @@
         android:text="Popularity: 250"
         android:textColor="@color/common_google_signin_btn_text_light_pressed"
         android:textSize="18sp" />
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.46">
+        android:layout_weight="0.05"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/saveEditEventBtn"
@@ -63,15 +65,16 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/emptyTextView"
+        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="18sp" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:background="@android:color/darker_gray"/>
+        android:background="@android:color/darker_gray" />
 
     <TextView
         android:id="@+id/textView4"
@@ -90,7 +93,7 @@
         android:layout_height="wrap_content"
         android:backgroundTint="@color/defaultBtnColor"
         android:elevation="0dp"
-        android:onClick="onClickDelBtn"
+        android:gravity="center"
         android:paddingBottom="10dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
@@ -99,6 +102,14 @@
         android:textAlignment="center"
         android:textColor="@color/materialRed800"
         android:textStyle="bold" />
+
+    <com.github.lzyzsd.circleprogress.DonutProgress
+        android:id="@+id/deleteDonutProgress"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="12dp"
+        android:visibility="gone" />
+
     <!--
         <TextView
             android:id="@+id/createEventSeekBarText"
@@ -112,8 +123,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="9" /> -->
-
-
 
 
 </LinearLayout>

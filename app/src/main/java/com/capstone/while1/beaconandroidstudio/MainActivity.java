@@ -20,8 +20,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.github.lzyzsd.circleprogress.DonutProgress;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -103,23 +107,29 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTestBtn(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
+        final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
         builder.setView(dialogView);
 
+        Context context = getApplicationContext();
+        final int white = ContextCompat.getColor(context, R.color.colorWhite);
+        final int delRed = ContextCompat.getColor(context, R.color.deleteColor);
+
+        Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Button delBtn = (Button) dialogView.findViewById(R.id.deleteEventBtn);
+                delBtn.setTextColor(white);
+                delBtn.getBackground().setTint(delRed);
+                delBtn.setText("Delete (Hold)");
+
+                DonutProgress delDonut = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
+                delDonut.setVisibility(View.VISIBLE);
+            }
+        });
 
         AlertDialog dialog = builder.create();
         dialog.show();
-    }
-
-    public void onClickDelBtn(View v) {
-        Context context = getApplicationContext();
-        int white = ContextCompat.getColor(context, R.color.colorWhite);
-        int delRed = ContextCompat.getColor(context, R.color.deleteColor);
-
-        Button delBtn = (Button) v.findViewById(R.id.deleteEventBtn);
-        delBtn.setTextColor(white);
-        delBtn.getBackground().setTint(delRed);
-        delBtn.setText("Delete (Hold)");
     }
 
     @Override
