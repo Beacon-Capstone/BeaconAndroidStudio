@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -96,6 +97,14 @@ public class MainActivity extends AppCompatActivity {
                     PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title).apply();
                     PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description).apply();
                     dialog.dismiss();
+                    if (MapFragment.mapFragment != null) {
+                        MapFragment mFrag = MapFragment.mapFragment;
+                        Location currLocation = mFrag.getCurrentLocation();
+                        mFrag.createMarker(title, description, currLocation.getLatitude(), currLocation.getLongitude(), "BeaconUser", 0);
+                        debugPrint("success! mapPinCreated!!!!!!!!");
+                    } else {
+                        debugPrint("mapFragment is NULL");
+                    }
                 }
             }
         });

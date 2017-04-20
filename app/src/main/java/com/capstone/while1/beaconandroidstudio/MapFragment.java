@@ -53,6 +53,7 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
+    public static MapFragment mapFragment;
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
     protected static final String TAG = "MainActivity";
@@ -65,6 +66,10 @@ public class MapFragment extends Fragment implements
     private MapView mMapView;
     private GoogleMap googleMap;
     private LocationManager lm;
+
+    public MapFragment() {
+        mapFragment = this;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -348,5 +353,9 @@ public class MapFragment extends Fragment implements
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
+    }
+
+    public Location getCurrentLocation() {
+        return this.mCurrentLocation;
     }
 }
