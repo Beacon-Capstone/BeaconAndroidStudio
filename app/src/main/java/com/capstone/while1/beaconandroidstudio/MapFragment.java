@@ -1,9 +1,10 @@
 package com.capstone.while1.beaconandroidstudio;
-
+//Aaron Whaley
 import android.content.IntentSender;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Criteria;
 import android.location.Location;
 import android.app.Dialog;
@@ -65,6 +66,8 @@ public class MapFragment extends Fragment implements
     private MapView mMapView;
     private GoogleMap googleMap;
     private LocationManager lm;
+    private boolean upvote;
+    private boolean downvote;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -186,16 +189,19 @@ public class MapFragment extends Fragment implements
             public boolean onMarkerClick(Marker arg0) {
                 //Creates dialog
                 final Dialog dialog = new Dialog(getActivity());
-                //Push Branch
                 //Sets event title
-                dialog.setTitle(title);
+                //dialog.setTitle(title);
+
                 dialog.setContentView(R.layout.event_content_dialog);
                 //Sets event description
+                TextView text3 = (TextView) dialog.findViewById(R.id.textView);
+                text3.setTypeface(null, Typeface.BOLD);
+                text3.setText(title);
+                //dialog.setTitle(title);
                 TextView text = (TextView) dialog.findViewById(R.id.text);
                 text.setText(description);
                 text.setMovementMethod(new ScrollingMovementMethod());
-                TextView text2 = (TextView) dialog.findViewById(R.id.text2);
-                text2.setGravity(Gravity.CENTER);
+                final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
                 text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
 
 
@@ -203,24 +209,36 @@ public class MapFragment extends Fragment implements
                 final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
                 final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
                 final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
-                final boolean[] upvote = {false, true, false};
-                final boolean[] downvote = {false, true, false};
+                //final boolean[] upvote = {false, true, false};
+                //final boolean[] downvote = {false, true, false};
                 //User has clicked the "upvote button"
+                if(upvote == true)
+                {
+                    up.setColorFilter(Color.GREEN);
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                }
+                if(downvote == true)
+                {
+                    down.setColorFilter(Color.RED);
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+                }
                 up.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(upvote[0] == false) {
+                        if(upvote == false) {
                             up.setColorFilter(Color.GREEN);
                             down.setColorFilter(null);
-                            upvote[0] = upvote[1];
-                            downvote[0] = downvote[2];
+                            upvote = true;
+                            downvote = false;
+                            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
                             //Send upvote to DB
                             //Retract downvote from DB
                         }
                         //Upvote is "unvoted"
                         else{
                             up.setColorFilter(null);
-                            upvote[0] = upvote[2];
+                            upvote = false;
+                            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                             //retract upvote from DB
                         }
                     }
@@ -230,18 +248,20 @@ public class MapFragment extends Fragment implements
                 down.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(downvote[0] == false) {
+                        if(downvote == false) {
                             down.setColorFilter(Color.RED);
                             up.setColorFilter(null);
-                            downvote[0] = downvote[1];
-                            upvote[0] = upvote[2];
+                            downvote = true;
+                            upvote = false;
+                            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
                             //Send downvote to DB
                             //Retract upvote from DB
                         }
                         //Downvote is "unvoted"
                         else{
                             down.setColorFilter(null);
-                            downvote[0] = downvote[2];
+                            downvote = false;
+                            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                             //Retract downvote from DB
                         }
                     }
@@ -310,7 +330,7 @@ public class MapFragment extends Fragment implements
         }
         String title = "Capstone Presentation";
         String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
-                "now you're paying too much attention to the slides and not what we're saying.";
+                " now you're paying too much attention to the slides and not what we're saying.";
         String dummycreator = "AaronisCool26";
         int popularity = 250;
 
