@@ -1,7 +1,6 @@
 package com.capstone.while1.beaconandroidstudio;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.os.Bundle;
@@ -9,18 +8,16 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
 
 //import static com.capstone.while1.beaconandroidstudio.R.id.logout;
 
-public class SettingsActivity extends PreferenceActivity{
+public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //addPreferencesFromResource(R.xml.preferences);
 
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
-
     }
 
 
@@ -45,7 +42,9 @@ public class SettingsActivity extends PreferenceActivity{
                 logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
-                        System.out.println("asdfasdfasdfd");
+                        PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
+                        //Log.d("BeaconAndroidStudio", "i'm logging out");
+                        startActivity(new Intent(getActivity(), SplashActivity.class));
                         return false;
                     }
                 });
