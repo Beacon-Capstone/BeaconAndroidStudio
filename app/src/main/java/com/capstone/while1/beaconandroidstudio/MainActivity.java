@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (progressHandler != null) return true;
                                 if (progress < 100) {
                                     progressHandler = new Handler();
-                                    progressHandler.postDelayed(progressUp, 25);
+                                    progressHandler.postDelayed(progressUp, 1);
                                 } else {
                                     debugPrint("hey i'm at/past 100");
                                 }
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override public void run() {
                             if (progress < 100) {
                                 delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 25);
+                                progressHandler.postDelayed(this, 1);
                             } else {
                                 debugPrint("hey i'm in runnable at/past 100");
                                 progressHandler.removeCallbacks(progressUp);
