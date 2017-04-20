@@ -186,10 +186,16 @@ public class MainActivity extends AppCompatActivity {
                 String newDescription = eventDescription.getText().toString();
 
                 if (!newTitle.equals("") && !newDescription.equals("")) {
-                    for (BeaconEvent event : eventList) {
+                    for (int i = 0; i < eventList.size(); i++) {
+                        BeaconEvent event = eventList.get(i);
                         if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
                             event.setName(newTitle);
                             event.setDescription(newDescription);
+                            if (MapFragment.mapFragment != null) {
+                                MapFragment mFrag = MapFragment.mapFragment;
+                                marker.remove();
+                                mFrag.createMarker(newTitle, newDescription, event.getLatitude(), event.getLongitude(), event.getCreatorName(), 0);
+                            }
                             break; //only find 1
                         }
                     }
