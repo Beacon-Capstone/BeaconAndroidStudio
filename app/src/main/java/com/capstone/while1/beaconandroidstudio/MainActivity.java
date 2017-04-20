@@ -34,6 +34,7 @@ import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
 
 import java.sql.Timestamp;
@@ -154,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void onEditEvent(final String title, final String description, String popularity) {
+    public void onEditEvent(final Marker marker, final String title, final String description, String popularity) {
         //create alertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
@@ -292,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
                             eventList.removeAll(eventsToDelete);
                             SavedPreferences.removeString(context, "eventListJson");
                             SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
+                            marker.remove();
                         }
                     }
                 });
