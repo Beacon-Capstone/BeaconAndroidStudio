@@ -197,6 +197,7 @@ public class MapFragment extends Fragment implements
                 TextView text3 = (TextView) dialog.findViewById(R.id.textView);
                 text3.setTypeface(null, Typeface.BOLD);
                 text3.setText(title);
+                //dialog.setTitle(title);
                 TextView text = (TextView) dialog.findViewById(R.id.text);
                 text.setText(description);
                 text.setMovementMethod(new ScrollingMovementMethod());

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/editEventDialogLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingBottom="15dp"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp"
+    android:paddingTop="15dp"
+    android:weightSum="1">
+
+    <EditText
+        android:id="@+id/editEventName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Event Name"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/editEventDescription"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="Description"
+        android:inputType="textMultiLine"
+        android:lines="7"
+        android:scrollbarAlwaysDrawVerticalTrack="false"
+        android:scrollbars="vertical"
+        android:selectAllOnFocus="false"
+        android:textAlignment="viewStart" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Popularity: 250"
+        android:textColor="@color/common_google_signin_btn_text_light_pressed"
+        android:textSize="18sp" />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.05"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/saveEditEventBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/cancelEditEventBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@android:color/darker_gray" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:paddingTop="6dp"
+        android:text="Danger Zone"
+        android:textAlignment="center"
+        android:textColor="@color/common_google_signin_btn_text_light_pressed"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/deleteEventBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/defaultBtnColor"
+        android:elevation="0dp"
+        android:gravity="center"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="10dp"
+        android:text="Delete"
+        android:textAlignment="center"
+        android:textColor="@color/materialRed800"
+        android:textStyle="bold" />
+
+    <com.github.lzyzsd.circleprogress.DonutProgress
+        android:id="@+id/deleteDonutProgress"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
+        app:donut_progress="0"
+        app:donut_text_size="14sp" />
+
+    <!--
+        <TextView
+            android:id="@+id/createEventSeekBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Radius (Miles): "
+            android:textSize="18sp" />
+
+        <SeekBar
+            android:id="@+id/createEventSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="9" /> -->
+
+
+</LinearLayout>
