@@ -1,16 +1,15 @@
 package com.capstone.while1.beaconandroidstudio;
 
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,16 +24,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     public static final String stringNotFound = "STRING_NOT_FOUND";
@@ -45,27 +36,33 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getSupportFragmentManager(), "dialog");
+        } else {
 
-        notification = new NotificationCompat.Builder(this);
-        notification.setAutoCancel(true); //deletes notification after u click on it
+            notification = new NotificationCompat.Builder(this);
+            notification.setAutoCancel(true); //deletes notification after u click on it
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            Context context = getApplicationContext();
-            @Override
-            public void onClick(View v) {
-                String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
-                String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
-                if (title.equals(stringNotFound) && description.equals(stringNotFound)) {
-                    onAddEvent(v);
-                } else {
-                    onEditEvent(v);
+            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                Context context = getApplicationContext();
+
+                @Override
+                public void onClick(View v) {
+                    String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
+                    String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
+                    if (title.equals(stringNotFound) && description.equals(stringNotFound)) {
+                        onAddEvent(v);
+                    } else {
+                        onEditEvent(v);
+                    }
                 }
-            }
-        });
+            });
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+        }
     }
 
     public void debugPrint(String message) {
@@ -204,6 +201,22 @@ public class MainActivity extends AppCompatActivity {
                     private Handler progressHandler;
                     private DonutProgress delDonut;
                     private int progress = 0;
+                    Runnable progressUp = new Runnable() {
+                        @Override
+                        public void run() {
+                            if (progress < 100) {
+                                delDonut.setDonut_progress((progress += 1) + "");
+                                progressHandler.postDelayed(this, 25);
+                            } else {
+                                debugPrint("hey i'm in runnable at/past 100");
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                                //delete event function call
+                                deleteEvent();
+                                dialog.dismiss();
+                            }
+                        }
+                    };
 
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -236,22 +249,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return false;
                     }
-
-                    Runnable progressUp = new Runnable() {
-                        @Override public void run() {
-                            if (progress < 100) {
-                                delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 25);
-                            } else {
-                                debugPrint("hey i'm in runnable at/past 100");
-                                progressHandler.removeCallbacks(progressUp);
-                                progressHandler = null;
-                                //delete event function call
-                                deleteEvent();
-                                dialog.dismiss();
-                            }
-                        }
-                    };
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
                     void deleteEvent() {
@@ -300,6 +297,14 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getSupportFragmentManager(), "dialog");
+        }
     }
 }

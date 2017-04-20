@@ -1,16 +1,15 @@
 package com.capstone.while1.beaconandroidstudio;
 
-import android.content.IntentSender;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.graphics.Color;
-import android.location.Criteria;
-import android.location.Location;
+import android.Manifest;
 import android.app.Dialog;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -18,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -43,6 +41,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -73,6 +74,8 @@ public class MapFragment extends Fragment implements
         mMapView = (MapView) rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
+        mRequestingLocationUpdates = true;
+
         buildGoogleApiClient();
         createLocationRequest();
         buildLocationSettingsRequest();
@@ -88,8 +91,14 @@ public class MapFragment extends Fragment implements
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap mMap) {
-                googleMap = mMap;
-                googleMap.setMyLocationEnabled(true);
+                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    PermissionUtils.PermissionDeniedDialog
+                            .newInstance(true).show(getFragmentManager(), "dialog");
+                } else {
+                    googleMap = mMap;
+                    googleMap.setMyLocationEnabled(true);
+                }
             }
         });
 
@@ -135,7 +144,7 @@ public class MapFragment extends Fragment implements
                         Log.i(TAG, "All location settings are satisfied.");
                         mRequestingLocationUpdates = true;
                         LocationServices.FusedLocationApi.requestLocationUpdates(
-                                mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) getActivity());
+                                mGoogleApiClient, mLocationRequest, MapFragment.this);
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
@@ -158,10 +167,8 @@ public class MapFragment extends Fragment implements
     }
 
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient,
-                this
-        ).setResultCallback(new ResultCallback<Status>() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this)
+                .setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(Status status) {
                 mRequestingLocationUpdates = false;
@@ -276,8 +283,12 @@ public class MapFragment extends Fragment implements
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
+        } else if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getFragmentManager(), "dialog");
         }
         updateMap(mCurrentLocation);
+
     }
 
     @Override
@@ -300,21 +311,31 @@ public class MapFragment extends Fragment implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            updateMap(mCurrentLocation);
-        }
-        if (mRequestingLocationUpdates) {
-            Log.i(TAG, "in onConnected(), starting location updates");
-            startLocationUpdates();
-        }
-        String title = "Capstone Presentation";
-        String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
-                "now you're paying too much attention to the slides and not what we're saying.";
-        String dummycreator = "AaronisCool26";
-        int popularity = 250;
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getFragmentManager(), "dialog");
+        } else {
+            if (mCurrentLocation == null) {
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                updateMap(mCurrentLocation);
+            }
+            if (mRequestingLocationUpdates) {
+                Log.i(TAG, "in onConnected(), starting location updates");
+                startLocationUpdates();
+            }
+            String title = "Capstone Presentation";
+            String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
+                    "now you're paying too much attention to the slides and not what we're saying.";
+            String dummycreator = "AaronisCool26";
+            int popularity = 250;
 
-        createMarker(title, description, (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), dummycreator, popularity);
+            for (int i = 0; i < 10; ++i) {
+                Random r = new Random();
+                double lat = ThreadLocalRandom.current().nextDouble(-0.01, 0.01);
+                double lon = ThreadLocalRandom.current().nextDouble(-0.01, 0.01);
+                createMarker(title, description, (mCurrentLocation.getLatitude() + lat), (mCurrentLocation.getLongitude() + lon), dummycreator, popularity);
+            }
+        }
     }
 
     @Override
