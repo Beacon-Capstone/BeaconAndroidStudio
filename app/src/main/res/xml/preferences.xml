@@ -31,6 +31,7 @@
         android:title="User Account Management">
         <Preference
             android:title="Logout"
+            android:key="logout"
             android:id="@+id/logout"/>
     </PreferenceCategory>
 
