@@ -275,7 +275,11 @@ public class MapFragment extends Fragment implements
     @Override
     public void onStart(){
         super.onStart();
-        mGoogleApiClient.connect();
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getActivity().getSupportFragmentManager(), "dialog");
+        } else
+            mGoogleApiClient.connect();
     }
 
     @Override
