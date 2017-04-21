@@ -54,8 +54,8 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     protected static final String TAG = "MainActivity";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     protected GoogleApiClient mGoogleApiClient;
@@ -91,8 +91,9 @@ public class MapFragment extends Fragment implements
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap mMap) {
-                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
+                if (!PermissionUtils.isLocationEnabled(getContext())
+                        || ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     PermissionUtils.PermissionDeniedDialog
                             .newInstance(true).show(getFragmentManager(), "dialog");
                 } else {
@@ -275,7 +276,9 @@ public class MapFragment extends Fragment implements
     @Override
     public void onStart(){
         super.onStart();
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (!PermissionUtils.isLocationEnabled(getContext())
+                || ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             PermissionUtils.PermissionDeniedDialog
                     .newInstance(true).show(getActivity().getSupportFragmentManager(), "dialog");
         } else
