@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 
 public class BeaconEvent {
     private int id;
+    private String originalName; //only needed for testing with no database (i don't have an autoincrement id system like a DB does
     private String name;
     private String description;
     private Timestamp timeLastUpdated;
@@ -28,7 +29,11 @@ public class BeaconEvent {
         this.latitude = latitude;
         this.longitude = longitude;
         this.location = location;
+
+        this.originalName = name;
     }
+
+    public String getOriginalName() {return this.originalName;}
 
     public int getId() {
         return id;

@@ -277,20 +277,20 @@ public class MainActivity extends AppCompatActivity {
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
-                                deleteEvent(title, description, "user");
+                                deleteEvent(title, "user");
                                 dialog.dismiss();
                             }
                         }
                     };
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
-                    void deleteEvent(String title, String description, String creatorName) {
+                    void deleteEvent(String title, String creatorName) {
                         int i;
                         //so apparently you can't delete something from a list in java while iterating over it (could cause ConcurrentModificationException), so this is the safe way to do it
                         List<BeaconEvent> eventsToDelete = new ArrayList<>();
                         for (i = 0; i < eventList.size(); i++) {
                             BeaconEvent event = eventList.get(i);
-                            if (event.getName().equals(title) && event.getDescription().equals(description) && event.getCreatorName().equals(creatorName)) {
+                            if (event.getOriginalName().equals(title) && event.getCreatorName().equals(creatorName)) {
                                 eventsToDelete.add(event);
                                 break; //only delete 1
                             }
