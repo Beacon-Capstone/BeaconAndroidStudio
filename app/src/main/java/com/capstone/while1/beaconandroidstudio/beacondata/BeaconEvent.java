@@ -79,23 +79,11 @@ public class BeaconEvent {
         return latitude;
     }
 
-    private void setLatitude(double latitude) {
-        this.latitude = location.getLatitude();
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
     }
 
     public double getLongitude() {
         return longitude;
-    }
-
-    private void setLongitude(double longitude) {
-        this.longitude = location.getLongitude();
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
     }
 }

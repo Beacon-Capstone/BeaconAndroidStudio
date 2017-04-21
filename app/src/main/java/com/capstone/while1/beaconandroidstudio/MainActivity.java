@@ -188,9 +188,10 @@ public class MainActivity extends AppCompatActivity {
                 if (!newTitle.equals("") && !newDescription.equals("")) {
                     for (int i = 0; i < eventList.size(); i++) {
                         BeaconEvent event = eventList.get(i);
-                        if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
+                        if (event.getCreatorName().equals("user") && event.getOriginalName().equals(title)) {
                             event.setName(newTitle);
                             event.setDescription(newDescription);
+                            event.setLatitude(event.getLatitude() - .01);
                             if (MapFragment.mapFragment != null) {
                                 MapFragment mFrag = MapFragment.mapFragment;
                                 marker.remove();
