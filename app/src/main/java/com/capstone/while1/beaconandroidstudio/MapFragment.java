@@ -5,6 +5,10 @@ import android.app.Dialog;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+//Aaron Whaley
+import android.content.IntentSender;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -12,13 +16,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -41,6 +45,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -54,8 +62,10 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
+
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+          
     protected static final String TAG = "MainActivity";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     protected GoogleApiClient mGoogleApiClient;
@@ -66,6 +76,12 @@ public class MapFragment extends Fragment implements
     private MapView mMapView;
     private GoogleMap googleMap;
     private LocationManager lm;
+    private boolean upvote;
+    private boolean downvote;
+
+    public MapFragment() {
+        mapFragment = this;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -189,83 +205,108 @@ public class MapFragment extends Fragment implements
         //Adds marker to map based on latitude and longitude parameters
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker arg0) {
-                //Creates dialog
-                final Dialog dialog = new Dialog(getActivity());
-                //Push Branch
-                //Sets event title
-                dialog.setTitle(title);
-                dialog.setContentView(R.layout.event_content_dialog);
-                //Sets event description
-                TextView text = (TextView) dialog.findViewById(R.id.text);
-                text.setText(description);
-                text.setMovementMethod(new ScrollingMovementMethod());
-                TextView text2 = (TextView) dialog.findViewById(R.id.text2);
-                text2.setGravity(Gravity.CENTER);
-                text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
+        if (creator.equals("user")) {
+            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    ((MainActivity)getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
+                    return true;
+                }
+            });
+        } else {
+            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker arg0) {
+                    //Creates dialog
+                    final Dialog dialog = new Dialog(getActivity());
+                    //Sets event title
+                    //dialog.setTitle(title);
+
+                    dialog.setContentView(R.layout.event_content_dialog);
+                    //Sets event description
+                    TextView text3 = (TextView) dialog.findViewById(R.id.textView);
+                    text3.setTypeface(null, Typeface.BOLD);
+                    text3.setText(title);
+                    //dialog.setTitle(title);
+                    TextView text = (TextView) dialog.findViewById(R.id.text);
+                    text.setText(description);
+                    text.setMovementMethod(new ScrollingMovementMethod());
+                    final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+                    text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
 
 
-                mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
-                final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
-                final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
-                final boolean[] upvote = {false, true, false};
-                final boolean[] downvote = {false, true, false};
-                //User has clicked the "upvote button"
-                up.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(upvote[0] == false) {
-                            up.setColorFilter(Color.GREEN);
-                            down.setColorFilter(null);
-                            upvote[0] = upvote[1];
-                            downvote[0] = downvote[2];
-                            //Send upvote to DB
-                            //Retract downvote from DB
-                        }
-                        //Upvote is "unvoted"
-                        else{
-                            up.setColorFilter(null);
-                            upvote[0] = upvote[2];
-                            //retract upvote from DB
-                        }
+                    mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
+                    final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
+                    final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                    //final boolean[] upvote = {false, true, false};
+                    //final boolean[] downvote = {false, true, false};
+                    //User has clicked the "upvote button"
+                    if (upvote == true) {
+                        up.setColorFilter(Color.GREEN);
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
                     }
-                });
-
-                //User clicked "downvote button"
-                down.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(downvote[0] == false) {
-                            down.setColorFilter(Color.RED);
-                            up.setColorFilter(null);
-                            downvote[0] = downvote[1];
-                            upvote[0] = upvote[2];
-                            //Send downvote to DB
-                            //Retract upvote from DB
-                        }
-                        //Downvote is "unvoted"
-                        else{
-                            down.setColorFilter(null);
-                            downvote[0] = downvote[2];
-                            //Retract downvote from DB
-                        }
+                    if (downvote == true) {
+                        down.setColorFilter(Color.RED);
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
                     }
-                });
+                    up.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (upvote == false) {
+                                up.setColorFilter(Color.GREEN);
+                                down.setColorFilter(null);
+                                upvote = true;
+                                downvote = false;
+                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                                //Send upvote to DB
+                                //Retract downvote from DB
+                            }
+                            //Upvote is "unvoted"
+                            else {
+                                up.setColorFilter(null);
+                                upvote = false;
+                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                                //retract upvote from DB
+                            }
+                        }
+                    });
 
-                //User clicked "cancel button"
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-                dialog.show();
-                return true;
-            }
-        });
+                    //User clicked "downvote button"
+                    down.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (downvote == false) {
+                                down.setColorFilter(Color.RED);
+                                up.setColorFilter(null);
+                                downvote = true;
+                                upvote = false;
+                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+                                //Send downvote to DB
+                                //Retract upvote from DB
+                            }
+                            //Downvote is "unvoted"
+                            else {
+                                down.setColorFilter(null);
+                                downvote = false;
+                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                                //Retract downvote from DB
+                            }
+                        }
+                    });
+
+                    //User clicked "cancel button"
+                    cancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.show();
+                    return true;
+                }
+            });
+        }
 
      }
     @Override
@@ -376,5 +417,9 @@ public class MapFragment extends Fragment implements
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
+    }
+
+    public Location getCurrentLocation() {
+        return this.mCurrentLocation;
     }
 }

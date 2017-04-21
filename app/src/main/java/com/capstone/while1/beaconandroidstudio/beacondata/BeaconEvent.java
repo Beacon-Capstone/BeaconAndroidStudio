@@ -11,28 +11,29 @@ import java.sql.Timestamp;
 
 public class BeaconEvent {
     private int id;
+    private String originalName; //only needed for testing with no database (i don't have an autoincrement id system like a DB does
     private String name;
     private String description;
     private Timestamp timeLastUpdated;
-    private int creatorId;
+    private String creatorName;
     private double latitude;
     private double longitude;
     private Location location;
 
-    public BeaconEvent(int id, String name, String description, Timestamp timeLastUpdated, int creatorId, double latitude, double longitude, Location location) {
+    public BeaconEvent(int id, String name, String description, Timestamp timeLastUpdated, String creatorName, double latitude, double longitude, Location location) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.timeLastUpdated = timeLastUpdated;
-        this.creatorId = creatorId;
+        this.creatorName = creatorName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.location = location;
+
+        this.originalName = name;
     }
 
-    public BeaconEvent()
-    {
-    }
+    public String getOriginalName() {return this.originalName;}
 
     public int getId() {
         return id;
@@ -66,12 +67,12 @@ public class BeaconEvent {
         this.timeLastUpdated = timeLastUpdated;
     }
 
-    public int getCreatorId() {
-        return creatorId;
+    public String getCreatorName() {
+        return creatorName;
     }
 
-    public void setCreatorId(int creatorId) {
-        this.creatorId = creatorId;
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
     }
 
     public double getLatitude() {
