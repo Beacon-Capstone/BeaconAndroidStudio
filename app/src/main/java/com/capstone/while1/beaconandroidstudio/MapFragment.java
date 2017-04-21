@@ -192,7 +192,7 @@ public class MapFragment extends Fragment implements
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    ((MainActivity)getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
+                    ((MainActivity)getActivity()).onEditEvent(mark, title, description, "Popularity: " + popularity);
                     return true;
                 }
             });
