@@ -3,6 +3,7 @@ package com.capstone.while1.beaconandroidstudio;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -10,7 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
+
+import static android.provider.Settings.Secure;
+import static android.provider.Settings.SettingNotFoundException;
 
 /**
  * Utility class for access to runtime permissions.
@@ -50,6 +53,20 @@ abstract class PermissionUtils {
         return false;
     }
 
+    public static boolean isLocationEnabled(Context context) {
+        int locationMode = 0;
+        try {
+            locationMode = Secure.getInt(context.getContentResolver(), Secure.LOCATION_MODE);
+
+        } catch (SettingNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return locationMode != Secure.LOCATION_MODE_OFF;
+
+    }
+
     /**
      * A dialog that displays a permission denied message.
      */
@@ -87,9 +104,7 @@ abstract class PermissionUtils {
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
             if (mFinishActivity) {
-                Toast.makeText(getActivity(), R.string.permission_required_toast,
-                        Toast.LENGTH_SHORT).show();
-                getActivity().finish();
+                System.exit(0);
             }
         }
     }
@@ -159,11 +174,7 @@ abstract class PermissionUtils {
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
             if (mFinishActivity) {
-                Toast.makeText(getActivity(),
-                        R.string.permission_required_toast,
-                        Toast.LENGTH_SHORT)
-                        .show();
-                getActivity().finish();
+                System.exit(0);
             }
         }
     }

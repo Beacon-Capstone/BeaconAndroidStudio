@@ -1,13 +1,22 @@
 package com.capstone.while1.beaconandroidstudio;
 
+import android.Manifest;
+import android.app.Dialog;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+
 import android.app.Dialog;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.location.LocationManager;
+
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,6 +55,9 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * A placeholder fragment containing a simple view.
  */
@@ -55,8 +67,9 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+          
     protected static final String TAG = "MainActivity";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
     public static MapFragment mapFragment;
@@ -81,6 +94,8 @@ public class MapFragment extends Fragment implements
         mMapView = (MapView) rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
+        mRequestingLocationUpdates = true;
+
         buildGoogleApiClient();
         createLocationRequest();
         buildLocationSettingsRequest();
@@ -96,8 +111,15 @@ public class MapFragment extends Fragment implements
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap mMap) {
-                googleMap = mMap;
-                googleMap.setMyLocationEnabled(true);
+                if (!PermissionUtils.isLocationEnabled(getContext())
+                        || ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    PermissionUtils.PermissionDeniedDialog
+                            .newInstance(true).show(getFragmentManager(), "dialog");
+                } else {
+                    googleMap = mMap;
+                    googleMap.setMyLocationEnabled(true);
+                }
             }
         });
 
@@ -143,7 +165,8 @@ public class MapFragment extends Fragment implements
                         Log.i(TAG, "All location settings are satisfied.");
                         mRequestingLocationUpdates = true;
                         LocationServices.FusedLocationApi.requestLocationUpdates(
-                                mGoogleApiClient, mLocationRequest, (LocationListener) MapFragment.this.getActivity());
+                                mGoogleApiClient, mLocationRequest, MapFragment.this);
+
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
@@ -166,10 +189,8 @@ public class MapFragment extends Fragment implements
     }
 
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient,
-                this
-        ).setResultCallback(new ResultCallback<Status>() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this)
+                .setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
                 mRequestingLocationUpdates = false;
@@ -307,7 +328,13 @@ public class MapFragment extends Fragment implements
     @Override
     public void onStart(){
         super.onStart();
-        mGoogleApiClient.connect();
+        if (!PermissionUtils.isLocationEnabled(getContext())
+                || ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getActivity().getSupportFragmentManager(), "dialog");
+        } else
+            mGoogleApiClient.connect();
     }
 
     @Override
@@ -315,8 +342,12 @@ public class MapFragment extends Fragment implements
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
+        } else if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getFragmentManager(), "dialog");
         }
         updateMap(mCurrentLocation);
+
     }
 
     @Override
@@ -339,13 +370,18 @@ public class MapFragment extends Fragment implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            updateMap(mCurrentLocation);
-        }
-        if (mRequestingLocationUpdates) {
-            Log.i(TAG, "in onConnected(), starting location updates");
-            startLocationUpdates();
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getFragmentManager(), "dialog");
+        } else {
+            if (mCurrentLocation == null) {
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                updateMap(mCurrentLocation);
+            }
+            if (mRequestingLocationUpdates) {
+                Log.i(TAG, "in onConnected(), starting location updates");
+                startLocationUpdates();
+            }
         }
         ArrayList<Event> events = BeaconData.getEvents();
         if (events != null) {

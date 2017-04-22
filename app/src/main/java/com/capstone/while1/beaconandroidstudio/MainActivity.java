@@ -1,10 +1,18 @@
 package com.capstone.while1.beaconandroidstudio;
 
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.location.Location;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +31,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+
 import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
@@ -58,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.onAddEvent(view);
             }
         });
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+        }
     }
 
     public void debugPrint(String message) {
@@ -334,6 +343,14 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getSupportFragmentManager(), "dialog");
+        }
     }
 }
