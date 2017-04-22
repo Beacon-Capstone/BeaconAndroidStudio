@@ -26,27 +26,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
-import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
+import com.capstone.while1.beaconandroidstudio.beacondata.Event;
 import com.github.lzyzsd.circleprogress.DonutProgress;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.Marker;
-import com.google.gson.Gson;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final int l33tHacks = 12345;
-    static List<BeaconEvent> eventList;
     NotificationCompat.Builder notification;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        eventList = new ArrayList<>();
 
         notification = new NotificationCompat.Builder(this);
         notification.setAutoCancel(true); //deletes notification after u click on it
@@ -94,13 +85,8 @@ public class MainActivity extends AppCompatActivity {
                         Location currLocation = mFrag.getCurrentLocation();
                         Double latitude = currLocation.getLatitude();
                         Double longitude = currLocation.getLongitude();
-                        mFrag.createMarker(title, description, latitude, longitude, "user", 0);
                         //store in eventList and save list, save list as json in savedPreferences
                         BeaconData.createEvent(title, description, latitude, longitude);
-                        eventList.add(new BeaconEvent(1, title, description, new Timestamp(System.currentTimeMillis()), "user", latitude, longitude, null));
-                        Gson gson = new Gson();
-                        String eventListAsString = gson.toJson(eventList);
-                        SavedPreferences.saveString(context, "eventListJson", eventListAsString);
                         MainActivity.this.debugPrint("success! mapPinCreated!");
                     } else {
                         MainActivity.this.debugPrint("mapFragment is NULL");
@@ -146,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void onEditEvent(final Marker marker, final String title, final String description, String popularity) {
+    public void onEditEvent(final Marker marker, final Event event) {
         //create alertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
@@ -163,9 +149,9 @@ public class MainActivity extends AppCompatActivity {
         final TextView eventPopularity = (TextView) dialogView.findViewById(R.id.editEventPopularity);
 
         //set current details of event
-        eventTitle.setText(title);
-        eventDescription.setText(description);
-        eventPopularity.setText(popularity);
+        eventTitle.setText(event.name);
+        eventDescription.setText(event.description);
+        eventPopularity.setText(event.voteCount);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
         saveButton.setOnClickListener(new OnClickListener() {
@@ -177,22 +163,9 @@ public class MainActivity extends AppCompatActivity {
                 String newDescription = eventDescription.getText().toString();
 
                 if (!newTitle.equals("") && !newDescription.equals("")) {
-                    for (int i = 0; i < eventList.size(); i++) {
-                        BeaconEvent event = eventList.get(i);
-                        if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
-                            event.setName(newTitle);
-                            event.setDescription(newDescription);
-                            if (MapFragment.mapFragment != null) {
-                                MapFragment mFrag = MapFragment.mapFragment;
-                                marker.remove();
-                                mFrag.createMarker(newTitle, newDescription, event.getLatitude(), event.getLongitude(), event.getCreatorName(), 0);
-                            }
-                            break; //only find 1
-                        }
-                    }
-                    SavedPreferences.removeString(context, "eventListJson");
-                    SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
-
+                    event.name = newTitle;
+                    event.description = newDescription;
+                    BeaconData.updateEvent(event);
                     //!!!!need code for updating event in database
                     dialog.dismiss();
                 }
@@ -235,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
-                                deleteEvent(title, "user");
+                                deleteEvent(marker, event.id);
                                 dialog.dismiss();
                             }
                         }
@@ -274,23 +247,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
-                    void deleteEvent(String title, String creatorName) {
-                        int i;
-                        //so apparently you can't delete something from a list in java while iterating over it (could cause ConcurrentModificationException), so this is the safe way to do it
-                        List<BeaconEvent> eventsToDelete = new ArrayList<>();
-                        for (i = 0; i < eventList.size(); i++) {
-                            BeaconEvent event = eventList.get(i);
-                            if (event.getOriginalName().equals(title) && event.getCreatorName().equals(creatorName)) {
-                                eventsToDelete.add(event);
-                                break; //only delete 1
-                            }
-                        }
-                        if (eventsToDelete.size() > 0) {
-                            eventList.removeAll(eventsToDelete);
-                            SavedPreferences.removeString(context, "eventListJson");
-                            SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
-                            marker.remove();
-                        }
+                    void deleteEvent(Marker marker, int eventId) {
+                        BeaconData.deleteEvent(eventId);
+                        marker.remove();
                     }
                 });
             }

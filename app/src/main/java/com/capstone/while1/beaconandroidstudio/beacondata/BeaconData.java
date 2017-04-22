@@ -148,7 +148,7 @@ public class BeaconData {
     }
 
     // Done - Tested
-    public static Boolean loginDataExists(Context context) {
+    public static Boolean tryToLoadUserInfo(Context context) {
         String credentialFileContents = getInternallyStoredFileContents(context, CREDENTIALS_FILE_NAME);
 
         if (credentialFileContents == null) {
@@ -180,7 +180,7 @@ public class BeaconData {
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
-        boolean wasAbleToRetrieveLoginInformation = loginDataExists(context);
+        boolean wasAbleToRetrieveLoginInformation = tryToLoadUserInfo(context);
 
         // If there is already a stored username and password, then use them to login
         if (wasAbleToRetrieveLoginInformation) {
@@ -638,6 +638,8 @@ public class BeaconData {
                 });
 
         queue.add(request);
+        //code for pulling all new events from database
+       // updateAllEvents
     }
 
     // Done - Init

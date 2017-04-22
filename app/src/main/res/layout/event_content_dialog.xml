@@ -11,7 +11,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/eventTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="22sp"
@@ -28,13 +28,14 @@
             android:background="@android:color/darker_gray"/>
 
         <TextView
+            android:id="@+id/eventDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
             android:maxLines="7"
             android:scrollbars="vertical"
-            android:layout_marginLeft="15dp"
             android:text="This is the description"
-            android:id="@+id/text"/>
+            android:textSize="16sp" />
 
         <View
             android:layout_width="match_parent"
@@ -49,7 +50,7 @@
             android:layout_marginTop="5dp"
             android:text="Created By: Creator\nPopularity: Good "
             android:gravity="center"
-            android:id="@+id/text2"/>
+            android:id="@+id/eventCreatorAndPopularity"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -57,21 +58,21 @@
 
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/upVoteBtn"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:srcCompat="@android:drawable/arrow_up_float" />
 
         <ImageButton
-            android:id="@+id/imageButton2"
+            android:id="@+id/downVoteBtn"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:srcCompat="@android:drawable/arrow_down_float" />
 
         <ImageButton
-            android:id="@+id/imageButton3"
+            android:id="@+id/closeBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

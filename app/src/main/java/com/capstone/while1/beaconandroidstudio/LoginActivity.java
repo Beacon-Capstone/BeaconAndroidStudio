@@ -22,7 +22,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // If already logged in, go to the map page immediately
-        if (BeaconData.loginDataExists(this)) {
+        if (BeaconData.tryToLoadUserInfo(this)) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         }

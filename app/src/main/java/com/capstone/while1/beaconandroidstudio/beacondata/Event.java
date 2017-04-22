@@ -6,6 +6,7 @@ package com.capstone.while1.beaconandroidstudio.beacondata;
 
 public class Event {
     public Integer id;
+    public Integer creatorId;
     public String name;
     public String description;
     public String timeLastUpdated;

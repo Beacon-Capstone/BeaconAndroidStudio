@@ -17,7 +17,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
-import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.capstone.while1.beaconandroidstudio.beacondata.Event;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,10 +40,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -184,16 +181,16 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    public void createMarker(final String title, final String description, double latitude, double longitude, final String creator, final int popularity){
+    public void createMarker(final Event event){
         //noinspection MissingPermission
         //Adds marker to map based on latitude and longitude parameters
-        final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+        final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        if (creator.equals("user")) {
+        if (event.id == 0) {
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
+                    ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, event);
                     return true;
                 }
             });
@@ -208,28 +205,28 @@ public class MapFragment extends Fragment implements
 
                     dialog.setContentView(R.layout.event_content_dialog);
                     //Sets event description
-                    TextView text3 = (TextView) dialog.findViewById(R.id.textView);
-                    text3.setTypeface(null, Typeface.BOLD);
-                    text3.setText(title);
+                    TextView titleTextView = (TextView) dialog.findViewById(R.id.eventTitle);
+                    titleTextView.setTypeface(null, Typeface.BOLD);
+                    titleTextView.setText(event.name);
                     //dialog.setTitle(title);
-                    TextView text = (TextView) dialog.findViewById(R.id.text);
-                    text.setText(description);
-                    text.setMovementMethod(new ScrollingMovementMethod());
-                    final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
-                    text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
+                    TextView descriptionTextView = (TextView) dialog.findViewById(R.id.eventDescription);
+                    descriptionTextView.setText(event.description);
+                    descriptionTextView.setMovementMethod(new ScrollingMovementMethod());
+                    final TextView creatorPopularityTextView = (TextView) dialog.findViewById(R.id.eventCreatorAndPopularity);
+                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"\nPopularity: " + event.voteCount);
 
 
                     mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                    final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
-                    final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
-                    final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                    final ImageButton up = (ImageButton) dialog.findViewById(R.id.upVoteBtn);
+                    final ImageButton down = (ImageButton) dialog.findViewById(R.id.downVoteBtn);
+                    final ImageButton closeBtn = (ImageButton) dialog.findViewById(R.id.closeBtn);
                     //final boolean[] upvote = {false, true, false};
                     //final boolean[] downvote = {false, true, false};
                     //User has clicked the "upvote button"
                     MapFragment.this.upvoteDownvoteListener(up, down);
 
                     //User clicked "cancel button"
-                    cancel.setOnClickListener(new View.OnClickListener() {
+                    closeBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             dialog.dismiss();
@@ -350,21 +347,7 @@ public class MapFragment extends Fragment implements
         ArrayList<Event> events = BeaconData.getEvents();
         if (events != null) {
             for (Event event : events) {
-                createMarker(event.name, event.description, event.latitude, event.longitude, "Creator", 150);
-            }
-        }
-
-        //populate the map with saved events (need to change this to check database too)
-        String eventListJson = SavedPreferences.getString(getContext(), "eventListJson");
-        if (!eventListJson.equals(getString(R.string.stringNotFound))) {
-            MainActivity.eventList = new ArrayList<>(Arrays.asList(new Gson().fromJson(eventListJson, BeaconEvent[].class)));
-            MapFragment mapFrag = MapFragment.mapFragment;
-            if (mapFrag != null) {
-                for (BeaconEvent event : MainActivity.eventList) {
-                    mapFrag.createMarker(event.getName(), event.getDescription(), event.getLatitude(), event.getLongitude(), event.getCreatorName(), 10/*placeholder*/);
-                }
-                //in case need to delete all events for testing
-                //SavedPreferences.removeString(getContext(), "eventListJson");
+                createMarker(event);
             }
         }
     }
