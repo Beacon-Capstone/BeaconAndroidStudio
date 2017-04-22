@@ -8,9 +8,19 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
+
 public class RegisterActivity extends AppCompatActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // If BeaconData is not initialized, initiate it!
+
+        // TODO: Replace
+        if (! BeaconData.isInitialized()) {
+            BeaconData.initiate(this, 1f, 1f);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
     }

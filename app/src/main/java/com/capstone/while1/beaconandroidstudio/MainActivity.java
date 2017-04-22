@@ -28,6 +28,7 @@ import android.widget.TextView;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
 
@@ -55,10 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        if (!BeaconData.isInitialized()) {
-            BeaconData.initiate(this);
-        }
     }
 
     public void debugPrint(String message) {

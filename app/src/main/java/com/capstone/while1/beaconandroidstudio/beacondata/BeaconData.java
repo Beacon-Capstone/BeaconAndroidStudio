@@ -38,8 +38,6 @@ public class BeaconData {
     private static String username = "joemelt101";
     private static String password = "password";
     private static RequestQueue queue = null;
-    private static Float latitude = null;
-    private static Float longitude = null;
     private static Consumer<ArrayList<Event>> updatedEventHandler = null;
     private static Runnable onInitialized = null;
     private static ArrayList<Integer> eventsVotedFor = null;
@@ -171,7 +169,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void initiate(Context context) {
+    public static void initiate(Context context, Float latitude, Float longitude) {
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
@@ -182,7 +180,7 @@ public class BeaconData {
             // login to get a token
             login(token -> {
                 // On Successful login
-                System.out.println("Token = " + token);
+                BeaconData.loginToken = token;
 
                 // Now get the events voted for
                 getEventsVotedFor(
@@ -201,7 +199,7 @@ public class BeaconData {
                     if (isInitialized()) {
                         onInitialized.run();
                     }
-                });
+                }, latitude, longitude);
             }, errorMsg -> System.out.println(errorMsg));
         } else {
             System.err.println("Need login information before initialization is possible! Call registerLogin() first if there is no current login information.");
@@ -272,7 +270,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static void downloadAllEventsInArea(Runnable onSuccess) {
+    private static void downloadAllEventsInArea(Runnable onSuccess, Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString());
         String uri = restAPIDomain + "/api/Events/da" + queryString;
 
@@ -318,7 +316,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static void downloadUpdates() {
+    private static void downloadUpdates(Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString(), "lastUpdatedTime", lastUpdatedTime);
         String uri = restAPIDomain + "/api/Events/du" + queryString;
 
@@ -397,7 +395,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static ArrayList<Event> getEventsWithinDistance(float distance) {
+    public static ArrayList<Event> getEventsWithinDistance(float distance, float latitude, float longitude) {
         ArrayList<Event> eventsWithinDistance = new ArrayList<Event>();
 
         for (Event e : eventData) {
