@@ -81,6 +81,28 @@ public class BeaconData {
         return true;
     }
 
+    public static void isValidLogin(String username, String password, Runnable success, Runnable failure) {
+        String queryStr = generateQueryString("username", username, "password", password);
+        String uri = restAPIDomain + "/api/Authenticator/IsValidLogin" + queryStr;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
+                jobj -> {
+                    try {
+                        if (jobj.getBoolean("wasSuccessful") == true) {
+                            success.run();
+                        }
+                        else {
+                            failure.run();
+                        }
+                    } catch (JSONException ex) {
+                        System.err.println(ex);
+                    }},
+                    error -> {
+                        System.err.println(error);
+                    });
+
+        queue.add(request);
+    }
+
     // Done - Init
     public static Boolean deleteLoginInformation(Context context) {
         if (userHasLocallySavedLoginInformation(context)) {
@@ -121,7 +143,7 @@ public class BeaconData {
     }
 
     // Done - Tested
-    public static Boolean retrieveLoginData(Context context) {
+    public static Boolean loginDataExists(Context context) {
         String credentialFileContents = getInternallyStoredFileContents(context, CREDENTIALS_FILE_NAME);
 
         if (credentialFileContents == null) {
@@ -153,7 +175,7 @@ public class BeaconData {
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
-        boolean wasAbleToRetrieveLoginInformation = retrieveLoginData(context);
+        boolean wasAbleToRetrieveLoginInformation = loginDataExists(context);
 
         // If there is already a stored username and password, then use them to login
         if (wasAbleToRetrieveLoginInformation) {
