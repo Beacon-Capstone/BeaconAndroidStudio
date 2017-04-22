@@ -45,6 +45,10 @@ class BeaconData {
     private static Runnable onInitialized = null;
     private static ArrayList<Integer> eventsVotedFor = null;
 
+    // Make the constructor private to force static use of the class.
+    private BeaconData() {
+    }
+
     // Done - Init
     public static Boolean userHasLocallySavedLoginInformation() {
         File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
@@ -84,8 +88,7 @@ class BeaconData {
             File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
             loginFile.delete();
             return true;
-        }
-        else {
+        } else {
             // There is no user credentials to delete
             return false;
         }
@@ -187,8 +190,7 @@ class BeaconData {
                     }
                 });
             }, errorMsg -> System.out.println(errorMsg));
-        }
-        else {
+        } else {
             System.err.println("Need login information before initialization is possible! Call registerLogin() first if there is no current login information.");
         }
     }
@@ -202,8 +204,7 @@ class BeaconData {
             if (i % 2 == 0) {
                 // Parameter name detected
                 sb.append("&" + strings[i] + "=");
-            }
-            else {
+            } else {
                 // Value detected
                 sb.append(strings[i]);
             }
@@ -226,21 +227,16 @@ class BeaconData {
 
         JsonObjectRequest tokenRequest = new JsonObjectRequest(Request.Method.GET, uri, null,
                 jobj -> {
-                    try
-                    {
+                    try {
                         Boolean loginSuccessful = jobj.getBoolean("loginSuccessful");
 
-                        if (loginSuccessful)
-                        {
+                        if (loginSuccessful) {
                             String token = jobj.getString("token");
                             onSuccess.accept(token);
-                        }
-                        else {
+                        } else {
                             onFailure.accept("Invalid Credentials");
                         }
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         // TODO: Problem loading the data!
                         onFailure.accept("Failed to parse server response.");
                     }
@@ -253,9 +249,6 @@ class BeaconData {
         System.out.println("***************************" + tokenRequest.toString());
         queue.add(tokenRequest);
     }
-
-    // Make the constructor private to force static use of the class.
-    private BeaconData(){}
 
     // Done - Init
     private static void updateLastUpdatedTime() {
@@ -296,8 +289,7 @@ class BeaconData {
 
                         // Done adding stuff!
                         onSuccess.run();
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         // TODO: Problem loading the data!
                         System.err.println(ex);
                     }
@@ -342,15 +334,12 @@ class BeaconData {
                                     // Remove from local database
                                     int indexToDelete = getEventIndex(event.id);
                                     eventData.remove(indexToDelete);
-                                }
-                                else
-                                {
+                                } else {
                                     // The event was not deleted...
                                     if (eventExists(jsonObject.getInt("id")) == false) {
                                         // Create the new event
                                         eventData.add(event);
-                                    }
-                                    else {
+                                    } else {
                                         // Update an existing event
                                         int index = getEventIndex(event.id);
                                         eventData.set(index, event);
@@ -360,12 +349,10 @@ class BeaconData {
                                 // Make sure to add it to the notification list...
                                 updatedEvents.add(event);
                             }
-                        }
-                        else {
+                        } else {
                             System.err.println("Request failed for getting updates...");
                         }
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         // TODO: Problem loading the data!
                         System.err.println(ex);
                     }
@@ -389,11 +376,6 @@ class BeaconData {
         }
 
         return false;
-    }
-
-    // Done - Final
-    public void setEventUpdateHandler(Consumer<ArrayList<Event>> updatedEventHandler) {
-        BeaconData.updatedEventHandler = updatedEventHandler;
     }
 
     // Done - Final
@@ -446,8 +428,7 @@ class BeaconData {
 
                             // Remove from local cache
                             eventData.remove(eIndex);
-                        }
-                        else {
+                        } else {
                             System.err.println(obj.getString("Message"));
                         }
                     } catch (JSONException ex) {
@@ -479,7 +460,7 @@ class BeaconData {
             System.err.println(ex);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,uri,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri,
                 eventObj,
                 obj -> {
                     try {
@@ -493,8 +474,7 @@ class BeaconData {
                             ArrayList<Event> updatedChanges = new ArrayList<>();
                             updatedChanges.add(event);
                             updatedEventHandler.accept(updatedChanges);
-                        }
-                        else {
+                        } else {
                             // Unsuccessful, print error message from server
                             System.err.println(obj.getString("message"));
                         }
@@ -566,8 +546,7 @@ class BeaconData {
                             ArrayList<Event> createdEvents = new ArrayList<>();
                             createdEvents.add(event);
                             updatedEventHandler.accept(createdEvents);
-                        }
-                        else {
+                        } else {
                             System.err.println(jobj.getString("Message"));
                         }
                     } catch (JSONException ex) {
@@ -598,12 +577,10 @@ class BeaconData {
                             eventsVotedFor.add(id);
                             Event event = getEvent(id);
                             event.voteCount++;
-                        }
-                        else {
+                        } else {
                             System.err.println(jobj.getString("Message"));
                         }
-                    }
-                    catch (JSONException ex) {
+                    } catch (JSONException ex) {
                         System.err.println(ex);
                     }
                 },
@@ -630,18 +607,16 @@ class BeaconData {
                             eventsVotedFor.add(id);
                             Event event = getEvent(id);
                             event.voteCount--;
-                        }
-                        else {
+                        } else {
                             System.err.println(jobj.getString("Message"));
                         }
-                    }
-                    catch (JSONException ex) {
+                    } catch (JSONException ex) {
                         System.err.println(ex);
                     }
                 },
                 error ->
                 {
-                   System.err.println(error);
+                    System.err.println(error);
                 });
     }
 
@@ -677,8 +652,7 @@ class BeaconData {
                                     event.voteCount -= numVotes;
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             System.err.println(jobj.getString("Message"));
                         }
                     } catch (JSONException ex) {
@@ -701,26 +675,20 @@ class BeaconData {
                         if (jobj.getBoolean("wasSuccessful")) {
                             JSONArray arr = jobj.getJSONArray("votes");
 
-                            for (int i = 0; i < arr.length(); ++i)
-                            {
+                            for (int i = 0; i < arr.length(); ++i) {
                                 Integer val = arr.getInt(i);
                                 eventsVotedFor.add(val);
                             }
 
-                            if (onSuccess != null)
-                            {
+                            if (onSuccess != null) {
                                 onSuccess.run();
                             }
-                        }
-                        else
-                        {
-                            if (onFailure != null)
-                            {
+                        } else {
+                            if (onFailure != null) {
                                 onFailure.accept("Invalid login detected when trying to retrieve user votes.");
                             }
                         }
-                    }
-                    catch (JSONException ex) {
+                    } catch (JSONException ex) {
                         System.err.println(ex);
                     }
                 },
@@ -734,21 +702,21 @@ class BeaconData {
     // Done - Init
     public static boolean haveVotedForEvent(int id) {
         for (int i = 0; i < eventsVotedFor.size(); ++i) {
-            if (eventsVotedFor.get(i) == id) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return eventsVotedFor.get(i) == id;
         }
 
         return true;
     }
 
     public static void setAttendedEvent(int id, Callable<Integer> callMe) {
-        try
-        {
+        try {
             callMe.call();
+        } catch (Exception e) {
         }
-        catch (Exception e){}
     }
+
+    // Done - Final
+    public void setEventUpdateHandler(Consumer<ArrayList<Event>> updatedEventHandler) {
+        BeaconData.updatedEventHandler = updatedEventHandler;
+    }
+}
