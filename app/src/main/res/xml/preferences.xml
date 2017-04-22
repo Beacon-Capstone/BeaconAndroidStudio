@@ -28,7 +28,19 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="User Account Management">
+        android:title="Account Management">
+        <EditTextPreference
+            android:title="Username"
+            android:summary="Change your username"
+            android:key="username"/>
+        <EditTextPreference
+            android:title="Email"
+            android:summary="Change your email"
+            android:key="userEmailAddress"/>
+        <Preference
+            android:title="Password"
+            android:summary="Change your password"
+            android:key="userPassword"/>
         <Preference
             android:title="Logout"
             android:key="logout"
