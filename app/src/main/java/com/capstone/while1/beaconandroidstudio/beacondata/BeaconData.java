@@ -38,7 +38,6 @@ class BeaconData {
     private static String username = "joemelt101";
     private static String password = "password";
     private static RequestQueue queue = null;
-    private static Context context = null;
     private static Float latitude = null;
     private static Float longitude = null;
     private static Consumer<ArrayList<Event>> updatedEventHandler = null;
@@ -50,13 +49,13 @@ class BeaconData {
     }
 
     // Done - Init
-    public static Boolean userHasLocallySavedLoginInformation() {
+    private static Boolean userHasLocallySavedLoginInformation(Context context) {
         File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
         return loginFile.exists(); // If it exists, then there is information stored locally for this user...
     }
 
     // Done - Tested
-    public static Boolean registerLogin(String username, String password) {
+    public static Boolean registerLogin(Context context, String username, String password) {
         // Create a convenient string format for future access
         JSONObject userJSON = new JSONObject();
         try {
@@ -83,8 +82,8 @@ class BeaconData {
     }
 
     // Done - Init
-    public static Boolean deleteLoginInformation() {
-        if (userHasLocallySavedLoginInformation()) {
+    public static Boolean deleteLoginInformation(Context context) {
+        if (userHasLocallySavedLoginInformation(context)) {
             File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
             loginFile.delete();
             return true;
@@ -100,7 +99,7 @@ class BeaconData {
     }
 
     // Done - Tested
-    private static String getInternallyStoredFileContents(String internalFilename) {
+    private static String getInternallyStoredFileContents(Context context, String internalFilename) {
         StringBuilder fileContents = new StringBuilder();
 
         try {
@@ -122,8 +121,8 @@ class BeaconData {
     }
 
     // Done - Tested
-    public static Boolean retrieveLoginData() {
-        String credentialFileContents = getInternallyStoredFileContents(CREDENTIALS_FILE_NAME);
+    public static Boolean retrieveLoginData(Context context) {
+        String credentialFileContents = getInternallyStoredFileContents(context, CREDENTIALS_FILE_NAME);
 
         if (credentialFileContents == null) {
             // Unsuccessful in return attempt
@@ -149,20 +148,15 @@ class BeaconData {
         BeaconData.onInitialized = onInitialized;
     }
 
-    public static void setContext(Context context) {
-        BeaconData.context = context;
-    }
-
     // Done - Init
     public static void initiate(Context context, float longitude, float latitude) {
-        BeaconData.context = context;
         BeaconData.latitude = latitude;
         BeaconData.longitude = longitude;
 
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
-        boolean wasAbleToRetrieveLoginInformation = retrieveLoginData();
+        boolean wasAbleToRetrieveLoginInformation = retrieveLoginData(context);
 
         // If there is already a stored username and password, then use them to login
         if (wasAbleToRetrieveLoginInformation) {
