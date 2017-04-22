@@ -37,8 +37,8 @@ public class LoginActivity extends AppCompatActivity {
         if (userInput == null || passInput == null) {
             Log.d("BeaconAndroidStudio", "userInput or passInput is null");
         } else {
-            String username = userInput.getText().toString();
-            String password = passInput.getText().toString();
+            final String username = userInput.getText().toString();
+            final String password = passInput.getText().toString();
 
             // Login doesn't exist yet, because this view loaded
             // Send off the username and password
