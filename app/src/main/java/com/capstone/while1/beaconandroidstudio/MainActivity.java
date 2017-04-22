@@ -13,6 +13,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.location.Location;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,27 +28,27 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
+import android.widget.TextView;
+
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String stringNotFound = "STRING_NOT_FOUND";
     private static final int l33tHacks = 12345;
-    NotificationCompat.Builder notification;
     static List<BeaconEvent> eventList;
+    NotificationCompat.Builder notification;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +61,10 @@ public class MainActivity extends AppCompatActivity {
         notification.setAutoCancel(true); //deletes notification after u click on it
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
-                onAddEvent(v);
+            public void onClick(View view) {
+                MainActivity.this.onAddEvent(view);
             }
         });
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -86,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         final EditText eventDescription = (EditText) dialogView.findViewById(R.id.createEventDescription);
 
         Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
-        createButton.setOnClickListener(new View.OnClickListener(){
+        createButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 String title = eventName.getText().toString();
@@ -102,13 +105,14 @@ public class MainActivity extends AppCompatActivity {
                         Double longitude = currLocation.getLongitude();
                         mFrag.createMarker(title, description, latitude, longitude, "user", 0);
                         //store in eventList and save list, save list as json in savedPreferences
+                        BeaconData.createEvent(title, description, latitude, longitude);
                         eventList.add(new BeaconEvent(1, title, description, new Timestamp(System.currentTimeMillis()), "user", latitude, longitude, null));
                         Gson gson = new Gson();
                         String eventListAsString = gson.toJson(eventList);
                         SavedPreferences.saveString(context, "eventListJson", eventListAsString);
-                        debugPrint("success! mapPinCreated!!!!!!!!");
+                        MainActivity.this.debugPrint("success! mapPinCreated!");
                     } else {
-                        debugPrint("mapFragment is NULL");
+                        MainActivity.this.debugPrint("mapFragment is NULL");
                     }
                 }
             }
@@ -139,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
         //cancel button, closes add event dialog, not needed but nice to have
         Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
-        cancelButton.setOnClickListener(new View.OnClickListener(){
+        cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
@@ -173,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         eventPopularity.setText(popularity);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
-        saveButton.setOnClickListener(new View.OnClickListener() { //after user edits event and wants to save changes
+        saveButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 //update user's own event on device
@@ -205,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEditEventBtn);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
+        cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 //user doesn't want to save changes, close dialog
@@ -215,18 +219,17 @@ public class MainActivity extends AppCompatActivity {
 
 
         final Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
-        deleteButton.setOnClickListener(new View.OnClickListener() {
+        deleteButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Button delBtn = deleteButton;
-                delBtn.setTextColor(white);
-                delBtn.getBackground().setTint(delRed);
-                delBtn.setText("Delete (Hold)");
+                deleteButton.setTextColor(white);
+                deleteButton.getBackground().setTint(delRed);
+                deleteButton.setText("Delete (Hold)");
 
                 final DonutProgress donutProgress = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
                 donutProgress.setVisibility(View.VISIBLE);
 
-                delBtn.setOnTouchListener(new View.OnTouchListener() {
+                deleteButton.setOnTouchListener(new View.OnTouchListener() {
                     private Handler progressHandler;
                     private DonutProgress delDonut;
                     private int progress = 0;
@@ -235,13 +238,13 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             if (progress < 100) {
                                 delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 25);
+                                progressHandler.postDelayed(this, 1);
                             } else {
                                 debugPrint("hey i'm in runnable at/past 100");
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
-                                deleteEvent();
+                                deleteEvent(title, "user");
                                 dialog.dismiss();
                             }
                         }
@@ -278,22 +281,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return false;
                     }
-
-                    Runnable progressUp = new Runnable() {
-                        @Override public void run() {
-                            if (progress < 100) {
-                                delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 1);
-                            } else {
-                                debugPrint("hey i'm in runnable at/past 100");
-                                progressHandler.removeCallbacks(progressUp);
-                                progressHandler = null;
-                                //delete event function call
-                                deleteEvent(title, "user");
-                                dialog.dismiss();
-                            }
-                        }
-                    };
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
                     void deleteEvent(String title, String creatorName) {

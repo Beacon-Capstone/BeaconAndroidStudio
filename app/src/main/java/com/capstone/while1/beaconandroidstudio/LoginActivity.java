@@ -8,10 +8,26 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.*;
+
 public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // If BeaconData is not initialized, initiate it!
+        // TODO: Add legit lat and lng
+        if (! BeaconData.isInitialized()) {
+            //TODO: Replace with legit lat and lng
+            BeaconData.initiate(this, 1f, 1f);
+        }
+
+        // If already logged in, go to the map page immediately
+        if (BeaconData.loginDataExists(this)) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+
+        // Else, request a login
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
     }
@@ -19,23 +35,38 @@ public class LoginActivity extends AppCompatActivity {
     public void login(View v) {
         EditText userInput = (EditText) findViewById(R.id.loginUserInput);
         EditText passInput = (EditText) findViewById(R.id.loginPassInput);
+
         if (userInput == null || passInput == null) {
             Log.d("BeaconAndroidStudio", "userInput or passInput is null");
         } else {
-            if (userInput.getText().toString().equals("user") && passInput.getText().toString().equals("pass")) {
-                SavedPreferences.setUserName(getApplicationContext(), "user");
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-            } else {
-                TextView messageOutput = (TextView) findViewById(R.id.messageOutput);
-                messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
-            }
+            final String username = userInput.getText().toString();
+            final String password = passInput.getText().toString();
+
+            // Login doesn't exist yet, because this view loaded
+            // Send off the username and password
+            BeaconData.isValidLogin(username, password,
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            // Success!
+                            BeaconData.registerLogin(LoginActivity.this, username, password);
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            LoginActivity.this.startActivity(intent);
+                        }
+                    },
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            // Failure!
+                            TextView messageOutput = (TextView) LoginActivity.this.findViewById(R.id.messageOutput);
+                            messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
+                        }
+                    });
         }
     }
 
     public void goToRegisterPage(View v) {
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
-
     }
 }

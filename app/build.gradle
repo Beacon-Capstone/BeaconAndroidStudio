@@ -10,6 +10,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        jackOptions {
+            enabled false
+        }
     }
     buildTypes {
         release {
@@ -17,6 +20,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+//    compileOptions {
+//        //targetCompatibility 1.8
+//        //sourceCompatibility 1.8
+//        sourceCompatibility JavaVersion.VERSION_1_8
+//        targetCompatibility JavaVersion.VERSION_1_8
+//    }
 }
 
 dependencies {
@@ -32,5 +42,6 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.0'
     compile 'com.github.lzyzsd:circleprogress:1.2.1'
     compile 'com.google.code.gson:gson:2.7'
+    compile 'com.android.volley:volley:1.0.0'
     testCompile 'junit:junit:4.12'
 }
