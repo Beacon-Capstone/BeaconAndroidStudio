@@ -43,16 +43,22 @@ public class LoginActivity extends AppCompatActivity {
             // Login doesn't exist yet, because this view loaded
             // Send off the username and password
             BeaconData.isValidLogin(username, password,
-                    () -> {
-                        // Success!
-                        BeaconData.registerLogin(this, username, password);
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            // Success!
+                            BeaconData.registerLogin(LoginActivity.this, username, password);
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            LoginActivity.this.startActivity(intent);
+                        }
                     },
-                    () -> {
-                        // Failure!
-                        TextView messageOutput = (TextView) findViewById(R.id.messageOutput);
-                        messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            // Failure!
+                            TextView messageOutput = (TextView) LoginActivity.this.findViewById(R.id.messageOutput);
+                            messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
+                        }
                     });
         }
     }

@@ -35,11 +35,14 @@ public class SettingsActivity extends PreferenceActivity {
                 super.onCreate(savedInstanceState);
                 addPreferencesFromResource(R.xml.preferences);
                 Preference logout = findPreference("logout");
-                logout.setOnPreferenceClickListener(preference -> {
-                    PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
-                    //Log.d("BeaconAndroidStudio", "i'm logging out");
-                    startActivity(new Intent(getActivity(), SplashActivity.class));
-                    return false;
+                logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity().getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
+                        //Log.d("BeaconAndroidStudio", "i'm logging out");
+                        SettingsFragment.this.startActivity(new Intent(getActivity(), SplashActivity.class));
+                        return false;
+                    }
                 });
             }
         }

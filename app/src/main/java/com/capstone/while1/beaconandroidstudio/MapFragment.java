@@ -23,17 +23,20 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -90,9 +93,12 @@ public class MapFragment extends Fragment implements
             e.printStackTrace();
         }
 
-        mMapView.getMapAsync(mMap -> {
-            googleMap = mMap;
-            googleMap.setMyLocationEnabled(true);
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap mMap) {
+                googleMap = mMap;
+                googleMap.setMyLocationEnabled(true);
+            }
         });
 
         return rootView;
@@ -128,31 +134,34 @@ public class MapFragment extends Fragment implements
         LocationServices.SettingsApi.checkLocationSettings(
                 mGoogleApiClient,
                 mLocationSettingsRequest
-        ).setResultCallback(locationSettingsResult -> {
-            final Status status = locationSettingsResult.getStatus();
-            switch (status.getStatusCode()) {
-                case LocationSettingsStatusCodes.SUCCESS:
-                    Log.i(TAG, "All location settings are satisfied.");
-                    mRequestingLocationUpdates = true;
-                    LocationServices.FusedLocationApi.requestLocationUpdates(
-                            mGoogleApiClient, mLocationRequest, (LocationListener) getActivity());
-                    break;
-                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                    Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                            "location settings ");
-                    try {
-                        status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
-                    } catch (IntentSender.SendIntentException e) {
-                        Log.i(TAG, "PendingIntent unable to execute request.");
-                    }
-                    break;
-                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                    String errorMessage = "Location settings are inadequate, and cannot be " +
-                            "fixed here. Fix in Settings.";
-                    Log.e(TAG, errorMessage);
-                    mRequestingLocationUpdates = false;
+        ).setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.i(TAG, "All location settings are satisfied.");
+                        mRequestingLocationUpdates = true;
+                        LocationServices.FusedLocationApi.requestLocationUpdates(
+                                mGoogleApiClient, mLocationRequest, (LocationListener) MapFragment.this.getActivity());
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                                "location settings ");
+                        try {
+                            status.startResolutionForResult(MapFragment.this.getActivity(), REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            Log.i(TAG, "PendingIntent unable to execute request.");
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        String errorMessage = "Location settings are inadequate, and cannot be " +
+                                "fixed here. Fix in Settings.";
+                        Log.e(TAG, errorMessage);
+                        mRequestingLocationUpdates = false;
+                }
+                MapFragment.this.updateMap(mCurrentLocation);
             }
-            updateMap(mCurrentLocation);
         });
     }
 
@@ -160,7 +169,12 @@ public class MapFragment extends Fragment implements
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient,
                 this
-        ).setResultCallback(status -> mRequestingLocationUpdates = false);
+        ).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(@NonNull Status status) {
+                mRequestingLocationUpdates = false;
+            }
+        });
     }
 
     private void updateMap(Location location) {
@@ -176,49 +190,60 @@ public class MapFragment extends Fragment implements
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
         if (creator.equals("user")) {
-            googleMap.setOnMarkerClickListener(marker -> {
-                ((MainActivity) getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
-                return true;
+            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
+                    return true;
+                }
             });
         } else {
-            googleMap.setOnMarkerClickListener(arg0 -> {
-                //Creates dialog
-                final Dialog dialog = new Dialog(getActivity());
-                //Sets event title
-                //dialog.setTitle(title);
+            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker arg0) {
+                    //Creates dialog
+                    final Dialog dialog = new Dialog(MapFragment.this.getActivity());
+                    //Sets event title
+                    //dialog.setTitle(title);
 
-                dialog.setContentView(R.layout.event_content_dialog);
-                //Sets event description
-                TextView text3 = (TextView) dialog.findViewById(R.id.textView);
-                text3.setTypeface(null, Typeface.BOLD);
-                text3.setText(title);
-                //dialog.setTitle(title);
-                TextView text = (TextView) dialog.findViewById(R.id.text);
-                text.setText(description);
-                text.setMovementMethod(new ScrollingMovementMethod());
-                final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
-                text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
+                    dialog.setContentView(R.layout.event_content_dialog);
+                    //Sets event description
+                    TextView text3 = (TextView) dialog.findViewById(R.id.textView);
+                    text3.setTypeface(null, Typeface.BOLD);
+                    text3.setText(title);
+                    //dialog.setTitle(title);
+                    TextView text = (TextView) dialog.findViewById(R.id.text);
+                    text.setText(description);
+                    text.setMovementMethod(new ScrollingMovementMethod());
+                    final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+                    text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
 
 
-                mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
-                final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
-                final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
-                //final boolean[] upvote = {false, true, false};
-                //final boolean[] downvote = {false, true, false};
-                //User has clicked the "upvote button"
-                upvoteDownvoteListener(up, down);
+                    mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
+                    final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
+                    final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                    //final boolean[] upvote = {false, true, false};
+                    //final boolean[] downvote = {false, true, false};
+                    //User has clicked the "upvote button"
+                    MapFragment.this.upvoteDownvoteListener(up, down);
 
-                //User clicked "cancel button"
-                cancel.setOnClickListener(v -> dialog.dismiss());
-                dialog.show();
-                return true;
+                    //User clicked "cancel button"
+                    cancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.show();
+                    return true;
+                }
             });
         }
 
     }
 
-    private void upvoteDownvoteListener(ImageButton up, ImageButton down)
+    private void upvoteDownvoteListener(final ImageButton up, final ImageButton down)
     {
         if (upvote) {
             up.setColorFilter(Color.GREEN);
@@ -228,42 +253,48 @@ public class MapFragment extends Fragment implements
             down.setColorFilter(Color.RED);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
         }
-        up.setOnClickListener(v -> {
-            if (!upvote) {
-                up.setColorFilter(Color.GREEN);
-                down.setColorFilter(null);
-                upvote = true;
-                downvote = false;
-                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                //Send upvote to DB
-                //Retract downvote from DB
-            }
-            //Upvote is "unvoted"
-            else {
-                up.setColorFilter(null);
-                upvote = false;
-                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                //retract upvote from DB
+        up.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!upvote) {
+                    up.setColorFilter(Color.GREEN);
+                    down.setColorFilter(null);
+                    upvote = true;
+                    downvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                    //Send upvote to DB
+                    //Retract downvote from DB
+                }
+                //Upvote is "unvoted"
+                else {
+                    up.setColorFilter(null);
+                    upvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                    //retract upvote from DB
+                }
             }
         });
 
         //User clicked "downvote button"
-        down.setOnClickListener(v -> {
-            if (!downvote) {
-                down.setColorFilter(Color.RED);
-                up.setColorFilter(null);
-                downvote = true;
-                upvote = false;
-                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                //Send downvote to DB
-                //Retract upvote from DB
-            }
-            //Downvote is "unvoted"
-            else {
-                down.setColorFilter(null);
-                downvote = false;
-                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                //Retract downvote from DB
+        down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!downvote) {
+                    down.setColorFilter(Color.RED);
+                    up.setColorFilter(null);
+                    downvote = true;
+                    upvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+                    //Send downvote to DB
+                    //Retract upvote from DB
+                }
+                //Downvote is "unvoted"
+                else {
+                    down.setColorFilter(null);
+                    downvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                    //Retract downvote from DB
+                }
             }
         });
     }
