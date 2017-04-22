@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -22,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 public class BeaconData {
     /*
@@ -38,7 +39,7 @@ public class BeaconData {
     private static String username = "joemelt101";
     private static String password = "password";
     private static RequestQueue queue = null;
-    private static Consumer<ArrayList<Event>> updatedEventHandler = null;
+    private static BeaconConsumer<ArrayList<Event>> updatedEventHandler = null;
     private static Runnable onInitialized = null;
     private static ArrayList<Integer> eventsVotedFor = null;
 
@@ -79,24 +80,30 @@ public class BeaconData {
         return true;
     }
 
-    public static void isValidLogin(String username, String password, Runnable success, Runnable failure) {
+    public static void isValidLogin(String username, String password, final Runnable success, final Runnable failure) {
         String queryStr = generateQueryString("username", username, "password", password);
         String uri = restAPIDomain + "/api/Authenticator/IsValidLogin" + queryStr;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful") == true) {
-                            success.run();
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful") == true) {
+                                success.run();
+                            } else {
+                                failure.run();
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                        else {
-                            failure.run();
-                        }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
-                    }},
-                    error -> {
-                        System.err.println(error);
-                    });
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError x) {
+                        System.err.println(x);
+                    }
+                });
 
         queue.add(request);
     }
@@ -169,7 +176,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void initiate(Context context, Float latitude, Float longitude) {
+    public static void initiate(Context context, final Float latitude, final Float longitude) {
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
@@ -178,29 +185,49 @@ public class BeaconData {
         // If there is already a stored username and password, then use them to login
         if (wasAbleToRetrieveLoginInformation) {
             // login to get a token
-            login(token -> {
-                // On Successful login
-                BeaconData.loginToken = token;
+            login(new BeaconConsumer<String>() {
+                @Override
+                public void accept(String token) {
+                    // On Successful login
+                    BeaconData.loginToken = token;
 
-                // Now get the events voted for
-                getEventsVotedFor(
-                        () -> {
-                            System.out.println("Successfully grabbed the events voted for");
+                    // Now get the events voted for
+                    getEventsVotedFor(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    System.out.println("Successfully grabbed the events voted for");
+                                    if (isInitialized()) {
+                                        onInitialized.run();
+                                    }
+                                }
+                            },
+                            new BeaconConsumer<String>()
+                            {
+                                @Override
+                                public void accept(String s) {
+                                    System.out.println(s);
+                                }
+                            }
+                    );
+
+                    // Now get the nearby event data
+                    downloadAllEventsInArea(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Successfully download the updates, see if we're ready to call onInitialized()
                             if (isInitialized()) {
                                 onInitialized.run();
                             }
-                        },
-                        s -> System.out.println(s)
-                );
-
-                // Now get the nearby event data
-                downloadAllEventsInArea(() -> {
-                    // Successfully download the updates, see if we're ready to call onInitialized()
-                    if (isInitialized()) {
-                        onInitialized.run();
-                    }
-                }, latitude, longitude);
-            }, errorMsg -> System.out.println(errorMsg));
+                        }
+                    }, latitude, longitude);
+                }
+            }, new BeaconConsumer<String>() {
+                @Override
+                public void accept(String errorMsg) {
+                    System.out.println(errorMsg);
+                }
+            });
         } else {
             System.err.println("Need login information before initialization is possible! Call registerLogin() first if there is no current login information.");
         }
@@ -225,35 +252,41 @@ public class BeaconData {
     }
 
     // Done - Init
-    private static void login(Consumer<String> onSuccess, Consumer<String> onFailure) {
+    private static void login(BeaconConsumer<String> onSuccess, BeaconConsumer<String> onFailure) {
         login(username, password, onSuccess, onFailure);
     }
 
     // Done - Init
-    private static void login(String username, String password, Consumer<String> onSuccess, Consumer<String> onFailure) {
+    private static void login(String username, String password, final BeaconConsumer<String> onSuccess, final BeaconConsumer<String> onFailure) {
         BeaconData.username = username;
         BeaconData.password = password;
         String queryString = generateQueryString("username", username, "password", password);
         String uri = restAPIDomain + "/api/Authenticator/Token" + queryString;
 
         JsonObjectRequest tokenRequest = new JsonObjectRequest(Request.Method.GET, uri, null,
-                jobj -> {
-                    try {
-                        Boolean loginSuccessful = jobj.getBoolean("loginSuccessful");
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            Boolean loginSuccessful = jobj.getBoolean("loginSuccessful");
 
-                        if (loginSuccessful) {
-                            String token = jobj.getString("token");
-                            onSuccess.accept(token);
-                        } else {
-                            onFailure.accept("Invalid Credentials");
+                            if (loginSuccessful) {
+                                String token = jobj.getString("token");
+                                onSuccess.accept(token);
+                            } else {
+                                onFailure.accept("Invalid Credentials");
+                            }
+                        } catch (Exception ex) {
+                            // TODO: Problem loading the data!
+                            onFailure.accept("Failed to parse server response.");
                         }
-                    } catch (Exception ex) {
-                        // TODO: Problem loading the data!
-                        onFailure.accept("Failed to parse server response.");
                     }
                 },
-                error -> {
-                    onFailure.accept(error.getMessage());
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        onFailure.accept(error.getMessage());
+                    }
                 }
         );
 
@@ -270,7 +303,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static void downloadAllEventsInArea(Runnable onSuccess, Float latitude, Float longitude) {
+    private static void downloadAllEventsInArea(final Runnable onSuccess, Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString());
         String uri = restAPIDomain + "/api/Events/da" + queryString;
 
@@ -280,35 +313,41 @@ public class BeaconData {
 
         // Ask for the information from the server...
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, uri, null,
-                jobj -> {
-                    try {
-                        //TODO: Fix this... Double check the structure of the data...
-                        for (int i = 0; i < jobj.length(); ++i) {
-                            JSONObject jsonObject = jobj.getJSONObject(i);
-                            Event event = new Event();
-                            event.id = jsonObject.getInt("id");
-                            event.deleted = jsonObject.getBoolean("deleted");
-                            event.description = jsonObject.getString("description");
-                            event.latitude = jsonObject.getDouble("latitude");
-                            event.longitude = jsonObject.getDouble("longitude");
-                            event.voteCount = jsonObject.getInt("voteCount");
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray jobj) {
+                        try {
+                            //TODO: Fix this... Double check the structure of the data...
+                            for (int i = 0; i < jobj.length(); ++i) {
+                                JSONObject jsonObject = jobj.getJSONObject(i);
+                                Event event = new Event();
+                                event.id = jsonObject.getInt("id");
+                                event.deleted = jsonObject.getBoolean("deleted");
+                                event.description = jsonObject.getString("description");
+                                event.latitude = jsonObject.getDouble("latitude");
+                                event.longitude = jsonObject.getDouble("longitude");
+                                event.voteCount = jsonObject.getInt("voteCount");
 
-                            System.out.println(event.timeCreated);
-                            System.out.println(event.timeLastUpdated);
-                            eventData.add(event);
+                                System.out.println(event.timeCreated);
+                                System.out.println(event.timeLastUpdated);
+                                eventData.add(event);
+                            }
+
+                            // Done adding stuff!
+                            onSuccess.run();
+                        } catch (Exception ex) {
+                            // TODO: Problem loading the data!
+                            System.err.println(ex);
                         }
 
-                        // Done adding stuff!
-                        onSuccess.run();
-                    } catch (Exception ex) {
-                        // TODO: Problem loading the data!
-                        System.err.println(ex);
+                        updatedEventHandler.accept(eventData);
                     }
-
-                    updatedEventHandler.accept(eventData);
                 },
-                error -> {
-                    System.out.println("Failed to get the data... Retrying...");
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println("Failed to get the data... Retrying...");
+                    }
                 }
         );
 
@@ -322,56 +361,62 @@ public class BeaconData {
 
         // Ask for the information from the server...
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
-                jobj -> {
-                    ArrayList<Event> updatedEvents = new ArrayList<>();
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        ArrayList<Event> updatedEvents = new ArrayList<>();
 
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            JSONArray eventsJsonArray = jobj.getJSONArray("events");
-                            for (int i = 0; i < eventsJsonArray.length(); ++i) {
-                                JSONObject jsonObject = eventsJsonArray.getJSONObject(i);
-                                Event event = new Event();
-                                event.id = jsonObject.getInt("id");
-                                event.deleted = jsonObject.getBoolean("deleted");
-                                event.description = jsonObject.getString("description");
-                                event.latitude = jsonObject.getDouble("latitude");
-                                event.longitude = jsonObject.getDouble("longitude");
-                                event.voteCount = jsonObject.getInt("voteCount");
-                                System.out.println(event.timeCreated);
-                                System.out.println(event.timeLastUpdated);
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                JSONArray eventsJsonArray = jobj.getJSONArray("events");
+                                for (int i = 0; i < eventsJsonArray.length(); ++i) {
+                                    JSONObject jsonObject = eventsJsonArray.getJSONObject(i);
+                                    Event event = new Event();
+                                    event.id = jsonObject.getInt("id");
+                                    event.deleted = jsonObject.getBoolean("deleted");
+                                    event.description = jsonObject.getString("description");
+                                    event.latitude = jsonObject.getDouble("latitude");
+                                    event.longitude = jsonObject.getDouble("longitude");
+                                    event.voteCount = jsonObject.getInt("voteCount");
+                                    System.out.println(event.timeCreated);
+                                    System.out.println(event.timeLastUpdated);
 
-                                // Test to see if the event was deleted
-                                if (event.deleted) {
-                                    // Remove from local database
-                                    int indexToDelete = getEventIndex(event.id);
-                                    eventData.remove(indexToDelete);
-                                } else {
-                                    // The event was not deleted...
-                                    if (!eventExists(jsonObject.getInt("id"))) {
-                                        // Create the new event
-                                        eventData.add(event);
+                                    // Test to see if the event was deleted
+                                    if (event.deleted) {
+                                        // Remove from local database
+                                        int indexToDelete = getEventIndex(event.id);
+                                        eventData.remove(indexToDelete);
                                     } else {
-                                        // Update an existing event
-                                        int index = getEventIndex(event.id);
-                                        eventData.set(index, event);
+                                        // The event was not deleted...
+                                        if (!eventExists(jsonObject.getInt("id"))) {
+                                            // Create the new event
+                                            eventData.add(event);
+                                        } else {
+                                            // Update an existing event
+                                            int index = getEventIndex(event.id);
+                                            eventData.set(index, event);
+                                        }
                                     }
+
+                                    // Make sure to add it to the notification list...
+                                    updatedEvents.add(event);
                                 }
-
-                                // Make sure to add it to the notification list...
-                                updatedEvents.add(event);
+                            } else {
+                                System.err.println("Request failed for getting updates...");
                             }
-                        } else {
-                            System.err.println("Request failed for getting updates...");
+                        } catch (Exception ex) {
+                            // TODO: Problem loading the data!
+                            System.err.println(ex);
                         }
-                    } catch (Exception ex) {
-                        // TODO: Problem loading the data!
-                        System.err.println(ex);
-                    }
 
-                    updatedEventHandler.accept(updatedEvents);
+                        updatedEventHandler.accept(updatedEvents);
+                    }
                 },
-                error -> {
-                    System.out.println("Failed to get the data... Retrying...");
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println("Failed to get the data... Retrying...");
+                    }
                 }
         );
 
@@ -396,7 +441,7 @@ public class BeaconData {
 
     // Done - Init
     public static ArrayList<Event> getEventsWithinDistance(float distance, float latitude, float longitude) {
-        ArrayList<Event> eventsWithinDistance = new ArrayList<Event>();
+        ArrayList<Event> eventsWithinDistance = new ArrayList<>();
 
         for (Event e : eventData) {
             double dlon = e.longitude - longitude;
@@ -416,7 +461,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void deleteEvent(Integer id) {
+    public static void deleteEvent(final Integer id) {
         // Remove from the server first
         // If successful, remove locally
         // Send a notification for the successful deletion
@@ -424,35 +469,43 @@ public class BeaconData {
         String uri = restAPIDomain + "/api/Events/" + id + queryString;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE,
                 uri, null,
-                obj -> {
-                    try {
-                        if (obj.getBoolean("wasSuccessful")) {
-                            // Deletion was successful from the server!
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject obj) {
+                        try {
+                            if (obj.getBoolean("wasSuccessful")) {
+                                // Deletion was successful from the server!
 
-                            // Notify the listener that the event was deleted
-                            int eIndex = getEventIndex(id);
-                            Event e = eventData.get(eIndex);
-                            e.deleted = true;
-                            ArrayList<Event> updatedEvents = new ArrayList<>();
-                            updatedEvents.add(e);
-                            updatedEventHandler.accept(updatedEvents);
+                                // Notify the listener that the event was deleted
+                                int eIndex = getEventIndex(id);
+                                Event e = eventData.get(eIndex);
+                                e.deleted = true;
+                                ArrayList<Event> updatedEvents = new ArrayList<>();
+                                updatedEvents.add(e);
+                                updatedEventHandler.accept(updatedEvents);
 
-                            // Remove from local cache
-                            eventData.remove(eIndex);
-                        } else {
-                            System.err.println(obj.getString("Message"));
+                                // Remove from local cache
+                                eventData.remove(eIndex);
+                            } else {
+                                System.err.println(obj.getString("Message"));
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                System.err::println);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError x) {
+                        System.err.println(x);
+                    }
+                });
 
         queue.add(request);
     }
 
     // Done - Init
-    public static void updateEvent(Event event) {
+    public static void updateEvent(final Event event) {
         String queryString = generateQueryString("token", loginToken);
         String uri = restAPIDomain + "/api/Events" + queryString;
 
@@ -473,31 +526,39 @@ public class BeaconData {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri,
                 eventObj,
-                obj -> {
-                    try {
-                        if (obj.getBoolean("wasSuccessful")) {
-                            // Successful!
-                            // Event was updated successfully, so updated our local copy
-                            int updatedEventIndex = getEventIndex(event.id);
-                            eventData.set(updatedEventIndex, event);
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject obj) {
+                        try {
+                            if (obj.getBoolean("wasSuccessful")) {
+                                // Successful!
+                                // Event was updated successfully, so updated our local copy
+                                int updatedEventIndex = getEventIndex(event.id);
+                                eventData.set(updatedEventIndex, event);
 
-                            // Notify the listener of changes
-                            ArrayList<Event> updatedChanges = new ArrayList<>();
-                            updatedChanges.add(event);
-                            updatedEventHandler.accept(updatedChanges);
-                        } else {
-                            // Unsuccessful, print error message from server
-                            System.err.println(obj.getString("message"));
+                                // Notify the listener of changes
+                                ArrayList<Event> updatedChanges = new ArrayList<>();
+                                updatedChanges.add(event);
+                                updatedEventHandler.accept(updatedChanges);
+                            } else {
+                                // Unsuccessful, print error message from server
+                                System.err.println(obj.getString("message"));
+                            }
+                        } catch (JSONException ex) {
+                            // Error parsing stuff...
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        // Error parsing stuff...
-                        System.err.println(ex);
                     }
                 },
-                error -> {
-                    // Connection error, report it in the log
-                    System.err.println(error);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Connection error, report it in the log
+                        System.err.println(error);
+                    }
                 });
+
+        queue.add(request);
     }
 
     // Done - Init
@@ -538,41 +599,49 @@ public class BeaconData {
         }
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, obj,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            // Server says we successfully created an event!
-                            // Now we need to parse the details and store locally...
-                            Event event = new Event();
-                            event.id = jobj.getInt("id");
-                            event.deleted = jobj.getBoolean("deleted");
-                            event.description = jobj.getString("description");
-                            event.latitude = jobj.getDouble("latitude");
-                            event.longitude = jobj.getDouble("longitude");
-                            event.voteCount = jobj.getInt("voteCount");
-                            System.out.println(jobj.getString("timeCreated"));
-                            System.out.println(jobj.getString("timeLastUpdated"));
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                // Server says we successfully created an event!
+                                // Now we need to parse the details and store locally...
+                                Event event = new Event();
+                                event.id = jobj.getInt("id");
+                                event.deleted = jobj.getBoolean("deleted");
+                                event.description = jobj.getString("description");
+                                event.latitude = jobj.getDouble("latitude");
+                                event.longitude = jobj.getDouble("longitude");
+                                event.voteCount = jobj.getInt("voteCount");
+                                System.out.println(jobj.getString("timeCreated"));
+                                System.out.println(jobj.getString("timeLastUpdated"));
 
-                            eventData.add(event);
+                                eventData.add(event);
 
-                            // Notify that the event was created
-                            ArrayList<Event> createdEvents = new ArrayList<>();
-                            createdEvents.add(event);
-                            updatedEventHandler.accept(createdEvents);
-                        } else {
-                            System.err.println(jobj.getString("Message"));
+                                // Notify that the event was created
+                                ArrayList<Event> createdEvents = new ArrayList<>();
+                                createdEvents.add(event);
+                                updatedEventHandler.accept(createdEvents);
+                            } else {
+                                System.err.println(jobj.getString("Message"));
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                System.err::println);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError x) {
+                        System.err.println(x);
+                    }
+                });
 
         queue.add(request);
     }
 
     // Done - Init
-    public static void voteUpOnEvent(int id) {
+    public static void voteUpOnEvent(final int id) {
         if (!haveVotedForEvent(id)) {
             System.err.println("Already voted for this event...");
             return;
@@ -582,28 +651,35 @@ public class BeaconData {
         String uri = restAPIDomain + "/api/Events/uv/" + id + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            eventsVotedFor.add(id);
-                            Event event = getEvent(id);
-                            assert event != null;
-                            event.voteCount++;
-                        } else {
-                            System.err.println(jobj.getString("Message"));
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                eventsVotedFor.add(id);
+                                Event event = getEvent(id);
+                                assert event != null;
+                                event.voteCount++;
+                            } else {
+                                System.err.println(jobj.getString("Message"));
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                error ->
-                {
-                    System.err.println(error);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.err.println(error);
+                    }
                 });
+
+        queue.add(request);
     }
 
     // Done - Init
-    public static void voteDownOnEvent(Integer id) {
+    public static void voteDownOnEvent(final Integer id) {
         if (haveVotedForEvent(id) == false) {
             System.err.println("Already voted for this event...");
             return;
@@ -613,28 +689,35 @@ public class BeaconData {
         String uri = restAPIDomain + "/api/Events/dv/" + id + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            eventsVotedFor.add(id);
-                            Event event = getEvent(id);
-                            assert event != null;
-                            event.voteCount--;
-                        } else {
-                            System.err.println(jobj.getString("Message"));
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                eventsVotedFor.add(id);
+                                Event event = getEvent(id);
+                                assert event != null;
+                                event.voteCount--;
+                            } else {
+                                System.err.println(jobj.getString("Message"));
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                error ->
-                {
-                    System.err.println(error);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.err.println(error);
+                    }
                 });
+
+        queue.add(request);
     }
 
     // Done - Init
-    public static void unvoteOnEvent(int id) {
+    public static void unvoteOnEvent(final int id) {
         // Make sure that the event was voted for...
         if (!haveVotedForEvent(id)) {
             System.err.println("Can't remove a vote for an event that you never voted for...");
@@ -645,71 +728,83 @@ public class BeaconData {
         String uri = restAPIDomain + "/api/Events/unvote/" + id + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            JSONArray votes = jobj.getJSONArray("votes");
-                            int numVotes = 0;
-                            // Remove vote locally (value from Event)
-                            for (int i = 0; i < votes.length(); ++i) {
-                                if (votes.getJSONObject(i).getInt("EventId") == id) {
-                                    numVotes = votes.getJSONObject(i).getInt("NumVotes");
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                JSONArray votes = jobj.getJSONArray("votes");
+                                int numVotes = 0;
+                                // Remove vote locally (value from Event)
+                                for (int i = 0; i < votes.length(); ++i) {
+                                    if (votes.getJSONObject(i).getInt("EventId") == id) {
+                                        numVotes = votes.getJSONObject(i).getInt("NumVotes");
+                                    }
                                 }
-                            }
 
-                            // Remove vote itself
-                            for (int i = 0; i < eventsVotedFor.size(); ++i) {
-                                if (eventsVotedFor.get(i) == id) {
-                                    eventsVotedFor.remove(i);
-                                    Event event = getEvent(id);
-                                    event.voteCount -= numVotes;
+                                // Remove vote itself
+                                for (int i = 0; i < eventsVotedFor.size(); ++i) {
+                                    if (eventsVotedFor.get(i) == id) {
+                                        eventsVotedFor.remove(i);
+                                        Event event = getEvent(id);
+                                        event.voteCount -= numVotes;
+                                    }
                                 }
+                            } else {
+                                System.err.println(jobj.getString("Message"));
                             }
-                        } else {
-                            System.err.println(jobj.getString("Message"));
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                error -> {
-                    System.err.println(error);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.err.println(error);
+                    }
                 });
     }
 
     // Done - Init
-    public static void getEventsVotedFor(Runnable onSuccess, Consumer<String> onFailure) {
+    public static void getEventsVotedFor(final Runnable onSuccess, final BeaconConsumer<String> onFailure) {
         String queryString = generateQueryString("token", loginToken);
         String uri = restAPIDomain + "/api/Events/votedFor" + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
-                jobj -> {
-                    try {
-                        if (jobj.getBoolean("wasSuccessful")) {
-                            JSONArray arr = jobj.getJSONArray("votes");
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                JSONArray arr = jobj.getJSONArray("votes");
 
-                            for (int i = 0; i < arr.length(); ++i) {
-                                Integer val = arr.getInt(i);
-                                eventsVotedFor.add(val);
-                            }
+                                for (int i = 0; i < arr.length(); ++i) {
+                                    Integer val = arr.getInt(i);
+                                    eventsVotedFor.add(val);
+                                }
 
-                            if (onSuccess != null) {
-                                onSuccess.run();
+                                if (onSuccess != null) {
+                                    onSuccess.run();
+                                }
+                            } else {
+                                if (onFailure != null) {
+                                    onFailure.accept("Invalid login detected when trying to retrieve user votes.");
+                                }
                             }
-                        } else {
-                            if (onFailure != null) {
-                                onFailure.accept("Invalid login detected when trying to retrieve user votes.");
-                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
                         }
-                    } catch (JSONException ex) {
-                        System.err.println(ex);
                     }
                 },
-                error ->
-                {
-                    System.err.println(error);
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.err.println(error);
+                    }
                 });
 
+        queue.add(request);
     }
 
     // Done - Init
@@ -729,7 +824,7 @@ public class BeaconData {
     }
 
     // Done - Final
-    public void setEventUpdateHandler(Consumer<ArrayList<Event>> updatedEventHandler) {
+    public void setEventUpdateHandler(BeaconConsumer<ArrayList<Event>> updatedEventHandler) {
         BeaconData.updatedEventHandler = updatedEventHandler;
     }
 }
