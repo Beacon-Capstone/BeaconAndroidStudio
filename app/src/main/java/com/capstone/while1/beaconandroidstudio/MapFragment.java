@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.app.Dialog;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
@@ -40,7 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -65,7 +64,6 @@ public class MapFragment extends Fragment implements
     protected boolean mRequestingLocationUpdates;
     private MapView mMapView;
     private GoogleMap googleMap;
-    private LocationManager lm;
     private boolean upvote;
     private boolean downvote;
 
@@ -225,58 +223,7 @@ public class MapFragment extends Fragment implements
                     //final boolean[] upvote = {false, true, false};
                     //final boolean[] downvote = {false, true, false};
                     //User has clicked the "upvote button"
-                    if (upvote == true) {
-                        up.setColorFilter(Color.GREEN);
-                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                    }
-                    if (downvote == true) {
-                        down.setColorFilter(Color.RED);
-                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                    }
-                    up.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (upvote == false) {
-                                up.setColorFilter(Color.GREEN);
-                                down.setColorFilter(null);
-                                upvote = true;
-                                downvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                                //Send upvote to DB
-                                //Retract downvote from DB
-                            }
-                            //Upvote is "unvoted"
-                            else {
-                                up.setColorFilter(null);
-                                upvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                                //retract upvote from DB
-                            }
-                        }
-                    });
-
-                    //User clicked "downvote button"
-                    down.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (downvote == false) {
-                                down.setColorFilter(Color.RED);
-                                up.setColorFilter(null);
-                                downvote = true;
-                                upvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                                //Send downvote to DB
-                                //Retract upvote from DB
-                            }
-                            //Downvote is "unvoted"
-                            else {
-                                down.setColorFilter(null);
-                                downvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                                //Retract downvote from DB
-                            }
-                        }
-                    });
+                    upvoteDownvoteListener(up, down);
 
                     //User clicked "cancel button"
                     cancel.setOnClickListener(new View.OnClickListener() {
@@ -292,6 +239,63 @@ public class MapFragment extends Fragment implements
         }
 
      }
+
+    private void upvoteDownvoteListener(ImageButton up, ImageButton down)
+    {
+        if (upvote) {
+            up.setColorFilter(Color.GREEN);
+            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+        }
+        if (downvote) {
+            down.setColorFilter(Color.RED);
+            //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+        }
+        up.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!upvote) {
+                    up.setColorFilter(Color.GREEN);
+                    down.setColorFilter(null);
+                    upvote = true;
+                    downvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                    //Send upvote to DB
+                    //Retract downvote from DB
+                }
+                //Upvote is "unvoted"
+                else {
+                    up.setColorFilter(null);
+                    upvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                    //retract upvote from DB
+                }
+            }
+        });
+
+        //User clicked "downvote button"
+        down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (downvote == false) {
+                    down.setColorFilter(Color.RED);
+                    up.setColorFilter(null);
+                    downvote = true;
+                    upvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+                    //Send downvote to DB
+                    //Retract upvote from DB
+                }
+                //Downvote is "unvoted"
+                else {
+                    down.setColorFilter(null);
+                    downvote = false;
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                    //Retract downvote from DB
+                }
+            }
+        });
+    }
+
     @Override
     public boolean onMyLocationButtonClick() {
         return false;
@@ -340,13 +344,18 @@ public class MapFragment extends Fragment implements
             Log.i(TAG, "in onConnected(), starting location updates");
             startLocationUpdates();
         }
-        String title = "Capstone Presentation";
         String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
                 " now you're paying too much attention to the slides and not what we're saying.";
         String dummycreator = "AaronisCool26";
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        BeaconEvent thisevent = new BeaconEvent(1234, "Cool Event", description, time, dummycreator,
+                (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), mCurrentLocation);
+        //String title = "Capstone Presentation";
+
+
         int popularity = 250;
 
-        createMarker(title, description, (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), dummycreator, popularity);
+        createMarker(thisevent.getName(), thisevent.getDescription(), thisevent.getLatitude(), thisevent.getLongitude(), thisevent.getCreatorName(), popularity);
 
         //populate the map with saved events (need to change this to check database too)
         String eventListJson = SavedPreferences.getString(getContext(), "eventListJson");
