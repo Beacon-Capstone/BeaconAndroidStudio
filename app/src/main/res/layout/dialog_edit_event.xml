@@ -35,10 +35,10 @@
         android:textAlignment="viewStart" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/editEventPopularity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Popularity: 250"
+        android:text="Popularity: 0"
         android:textColor="@color/common_google_signin_btn_text_light_pressed"
         android:textSize="18sp" />
 

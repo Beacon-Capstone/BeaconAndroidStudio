@@ -6,8 +6,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -30,37 +32,40 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.google.android.gms.maps.model.Marker;
+import com.google.gson.Gson;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     public static final String stringNotFound = "STRING_NOT_FOUND";
     private static final int l33tHacks = 12345;
     NotificationCompat.Builder notification;
+    static List<BeaconEvent> eventList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        eventList = new ArrayList<>();
+
         notification = new NotificationCompat.Builder(this);
         notification.setAutoCancel(true); //deletes notification after u click on it
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
-            Context context = getApplicationContext();
             @Override
             public void onClick(View v) {
-                String title = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound);
-                String description = PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound);
-                if (title.equals(stringNotFound) && description.equals(stringNotFound)) {
-                    onAddEvent(v);
-                } else {
-                    onEditEvent(v);
-                }
+                onAddEvent(v);
             }
         });
 
@@ -93,9 +98,22 @@ public class MainActivity extends AppCompatActivity {
 
                 // both title and description need something in their fields, don't even close dialog if one of the fields is empty (need to add more error handling (prevent whitespace characters only etc.)
                 if (!title.equals("") && !description.equals("")) {
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title).apply();
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description).apply();
                     dialog.dismiss();
+                    if (MapFragment.mapFragment != null) {
+                        MapFragment mFrag = MapFragment.mapFragment;
+                        Location currLocation = mFrag.getCurrentLocation();
+                        Double latitude = currLocation.getLatitude();
+                        Double longitude = currLocation.getLongitude();
+                        mFrag.createMarker(title, description, latitude, longitude, "user", 0);
+                        //store in eventList and save list, save list as json in savedPreferences
+                        eventList.add(new BeaconEvent(1, title, description, new Timestamp(System.currentTimeMillis()), "user", latitude, longitude, null));
+                        Gson gson = new Gson();
+                        String eventListAsString = gson.toJson(eventList);
+                        SavedPreferences.saveString(context, "eventListJson", eventListAsString);
+                        debugPrint("success! mapPinCreated!!!!!!!!");
+                    } else {
+                        debugPrint("mapFragment is NULL");
+                    }
                 }
             }
         });
@@ -137,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void onEditEvent(View view) {
+    public void onEditEvent(final Marker marker, final String title, final String description, String popularity) {
         //create alertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_event, null);
@@ -151,26 +169,38 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText eventTitle = (EditText) dialogView.findViewById(R.id.editEventName);
         final EditText eventDescription = (EditText) dialogView.findViewById(R.id.editEventDescription);
+        final TextView eventPopularity = (TextView) dialogView.findViewById(R.id.editEventPopularity);
 
-        //this hack was suggested by the android studio IDE to bypass the whole variable needs to be final if it's in an inner class thing (thanks java for being so strict...)
-        final String[] title = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventTitle", stringNotFound)};
-        final String[] description = {PreferenceManager.getDefaultSharedPreferences(context).getString("myEventDescription", stringNotFound)};
-
-        eventTitle.setText(title[0]);
-        eventDescription.setText(description[0]);
+        //set current details of event
+        eventTitle.setText(title);
+        eventDescription.setText(description);
+        eventPopularity.setText(popularity);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
-        saveButton.setOnClickListener(new View.OnClickListener() {
+        saveButton.setOnClickListener(new View.OnClickListener() { //after user edits event and wants to save changes
             @Override
             public void onClick(View v) {
                 //update user's own event on device
                 //save user made event as 2 strings (name and description)
-                title[0] = eventTitle.getText().toString();
-                description[0] = eventDescription.getText().toString();
+                String newTitle = eventTitle.getText().toString();
+                String newDescription = eventDescription.getText().toString();
 
-                if (!title[0].equals("") && !description[0].equals("")) {
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventTitle", title[0]).apply();
-                    PreferenceManager.getDefaultSharedPreferences(context).edit().putString("myEventDescription", description[0]).apply();
+                if (!newTitle.equals("") && !newDescription.equals("")) {
+                    for (int i = 0; i < eventList.size(); i++) {
+                        BeaconEvent event = eventList.get(i);
+                        if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
+                            event.setName(newTitle);
+                            event.setDescription(newDescription);
+                            if (MapFragment.mapFragment != null) {
+                                MapFragment mFrag = MapFragment.mapFragment;
+                                marker.remove();
+                                mFrag.createMarker(newTitle, newDescription, event.getLatitude(), event.getLongitude(), event.getCreatorName(), 0);
+                            }
+                            break; //only find 1
+                        }
+                    }
+                    SavedPreferences.removeString(context, "eventListJson");
+                    SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
 
                     //!!!!need code for updating event in database
                     dialog.dismiss();
@@ -215,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (progressHandler != null) return true;
                                 if (progress < 100) {
                                     progressHandler = new Handler();
-                                    progressHandler.postDelayed(progressUp, 25);
+                                    progressHandler.postDelayed(progressUp, 1);
                                 } else {
                                     debugPrint("hey i'm at/past 100");
                                 }
@@ -241,22 +271,36 @@ public class MainActivity extends AppCompatActivity {
                         @Override public void run() {
                             if (progress < 100) {
                                 delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 25);
+                                progressHandler.postDelayed(this, 1);
                             } else {
                                 debugPrint("hey i'm in runnable at/past 100");
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
-                                deleteEvent();
+                                deleteEvent(title, "user");
                                 dialog.dismiss();
                             }
                         }
                     };
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
-                    void deleteEvent() {
-                        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("myEventTitle").apply();
-                        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("myEventDescription").apply();
+                    void deleteEvent(String title, String creatorName) {
+                        int i;
+                        //so apparently you can't delete something from a list in java while iterating over it (could cause ConcurrentModificationException), so this is the safe way to do it
+                        List<BeaconEvent> eventsToDelete = new ArrayList<>();
+                        for (i = 0; i < eventList.size(); i++) {
+                            BeaconEvent event = eventList.get(i);
+                            if (event.getOriginalName().equals(title) && event.getCreatorName().equals(creatorName)) {
+                                eventsToDelete.add(event);
+                                break; //only delete 1
+                            }
+                        }
+                        if (eventsToDelete.size() > 0) {
+                            eventList.removeAll(eventsToDelete);
+                            SavedPreferences.removeString(context, "eventListJson");
+                            SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
+                            marker.remove();
+                        }
                     }
                 });
             }
