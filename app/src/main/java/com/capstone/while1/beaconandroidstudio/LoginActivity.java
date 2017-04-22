@@ -28,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             } else {
                 TextView messageOutput = (TextView) findViewById(R.id.messageOutput);
-                messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
+                messageOutput.setText("Incorrect username or password");
             }
         }
     }

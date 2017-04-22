@@ -1,12 +1,12 @@
 package com.capstone.while1.beaconandroidstudio;
-//Aaron Whaley
+
+import android.app.Dialog;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
-import android.app.Dialog;
-import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -16,25 +16,24 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
+import com.capstone.while1.beaconandroidstudio.beacondata.Event;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -53,11 +52,11 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
-    public static MapFragment mapFragment;
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 2000;
     protected static final String TAG = "MainActivity";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+    public static MapFragment mapFragment;
     protected GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     protected LocationSettingsRequest mLocationSettingsRequest;
@@ -65,7 +64,6 @@ public class MapFragment extends Fragment implements
     protected boolean mRequestingLocationUpdates;
     private MapView mMapView;
     private GoogleMap googleMap;
-    private LocationManager lm;
     private boolean upvote;
     private boolean downvote;
 
@@ -92,12 +90,9 @@ public class MapFragment extends Fragment implements
             e.printStackTrace();
         }
 
-        mMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap mMap) {
-                googleMap = mMap;
-                googleMap.setMyLocationEnabled(true);
-            }
+        mMapView.getMapAsync(mMap -> {
+            googleMap = mMap;
+            googleMap.setMyLocationEnabled(true);
         });
 
         return rootView;
@@ -133,34 +128,31 @@ public class MapFragment extends Fragment implements
         LocationServices.SettingsApi.checkLocationSettings(
                 mGoogleApiClient,
                 mLocationSettingsRequest
-        ).setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult locationSettingsResult) {
-                final Status status = locationSettingsResult.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        Log.i(TAG, "All location settings are satisfied.");
-                        mRequestingLocationUpdates = true;
-                        LocationServices.FusedLocationApi.requestLocationUpdates(
-                                mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) getActivity());
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                "location settings ");
-                        try {
-                            status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            Log.i(TAG, "PendingIntent unable to execute request.");
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        String errorMessage = "Location settings are inadequate, and cannot be " +
-                                "fixed here. Fix in Settings.";
-                        Log.e(TAG, errorMessage);
-                        mRequestingLocationUpdates = false;
-                }
-                updateMap(mCurrentLocation);
+        ).setResultCallback(locationSettingsResult -> {
+            final Status status = locationSettingsResult.getStatus();
+            switch (status.getStatusCode()) {
+                case LocationSettingsStatusCodes.SUCCESS:
+                    Log.i(TAG, "All location settings are satisfied.");
+                    mRequestingLocationUpdates = true;
+                    LocationServices.FusedLocationApi.requestLocationUpdates(
+                            mGoogleApiClient, mLocationRequest, (LocationListener) getActivity());
+                    break;
+                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                    Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                            "location settings ");
+                    try {
+                        status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                    } catch (IntentSender.SendIntentException e) {
+                        Log.i(TAG, "PendingIntent unable to execute request.");
+                    }
+                    break;
+                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    String errorMessage = "Location settings are inadequate, and cannot be " +
+                            "fixed here. Fix in Settings.";
+                    Log.e(TAG, errorMessage);
+                    mRequestingLocationUpdates = false;
             }
+            updateMap(mCurrentLocation);
         });
     }
 
@@ -168,12 +160,7 @@ public class MapFragment extends Fragment implements
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient,
                 this
-        ).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(Status status) {
-                mRequestingLocationUpdates = false;
-            }
-        });
+        ).setResultCallback(status -> mRequestingLocationUpdates = false);
     }
 
     private void updateMap(Location location) {
@@ -189,105 +176,87 @@ public class MapFragment extends Fragment implements
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
         if (creator.equals("user")) {
-            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    ((MainActivity)getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
-                    return true;
-                }
+            googleMap.setOnMarkerClickListener(marker -> {
+                ((MainActivity) getActivity()).onEditEvent(marker, title, description, "Popularity: " + popularity);
+                return true;
             });
         } else {
-            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker arg0) {
-                    //Creates dialog
-                    final Dialog dialog = new Dialog(getActivity());
-                    //Sets event title
-                    //dialog.setTitle(title);
+            googleMap.setOnMarkerClickListener(arg0 -> {
+                //Creates dialog
+                final Dialog dialog = new Dialog(getActivity());
+                //Sets event title
+                //dialog.setTitle(title);
 
-                    dialog.setContentView(R.layout.event_content_dialog);
-                    //Sets event description
-                    TextView text3 = (TextView) dialog.findViewById(R.id.textView);
-                    text3.setTypeface(null, Typeface.BOLD);
-                    text3.setText(title);
-                    //dialog.setTitle(title);
-                    TextView text = (TextView) dialog.findViewById(R.id.text);
-                    text.setText(description);
-                    text.setMovementMethod(new ScrollingMovementMethod());
-                    final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
-                    text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
+                dialog.setContentView(R.layout.event_content_dialog);
+                //Sets event description
+                TextView text3 = (TextView) dialog.findViewById(R.id.textView);
+                text3.setTypeface(null, Typeface.BOLD);
+                text3.setText(title);
+                //dialog.setTitle(title);
+                TextView text = (TextView) dialog.findViewById(R.id.text);
+                text.setText(description);
+                text.setMovementMethod(new ScrollingMovementMethod());
+                final TextView text2 = (TextView) dialog.findViewById(R.id.text2);
+                text2.setText("Created By: " + creator + "\nPopularity: " + popularity);
 
 
-                    mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                    final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
-                    final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
-                    final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
-                    //final boolean[] upvote = {false, true, false};
-                    //final boolean[] downvote = {false, true, false};
-                    //User has clicked the "upvote button"
-                    if (upvote == true) {
-                        up.setColorFilter(Color.GREEN);
-                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                    }
-                    if (downvote == true) {
-                        down.setColorFilter(Color.RED);
-                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                    }
-                    up.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (upvote == false) {
-                                up.setColorFilter(Color.GREEN);
-                                down.setColorFilter(null);
-                                upvote = true;
-                                downvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                                //Send upvote to DB
-                                //Retract downvote from DB
-                            }
-                            //Upvote is "unvoted"
-                            else {
-                                up.setColorFilter(null);
-                                upvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                                //retract upvote from DB
-                            }
-                        }
-                    });
-
-                    //User clicked "downvote button"
-                    down.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (downvote == false) {
-                                down.setColorFilter(Color.RED);
-                                up.setColorFilter(null);
-                                downvote = true;
-                                upvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                                //Send downvote to DB
-                                //Retract upvote from DB
-                            }
-                            //Downvote is "unvoted"
-                            else {
-                                down.setColorFilter(null);
-                                downvote = false;
-                                //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                                //Retract downvote from DB
-                            }
-                        }
-                    });
-
-                    //User clicked "cancel button"
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialog.dismiss();
-                        }
-                    });
-                    dialog.show();
-                    return true;
+                mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                final ImageButton up = (ImageButton) dialog.findViewById(R.id.imageButton);
+                final ImageButton down = (ImageButton) dialog.findViewById(R.id.imageButton2);
+                final ImageButton cancel = (ImageButton) dialog.findViewById(R.id.imageButton3);
+                //final boolean[] upvote = {false, true, false};
+                //final boolean[] downvote = {false, true, false};
+                //User has clicked the "upvote button"
+                if (upvote) {
+                    up.setColorFilter(Color.GREEN);
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                } else if (downvote) {
+                    down.setColorFilter(Color.RED);
+                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
                 }
+                up.setOnClickListener(v -> {
+                    if (!upvote) {
+                        up.setColorFilter(Color.GREEN);
+                        down.setColorFilter(null);
+                        upvote = true;
+                        downvote = false;
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
+                        //Send upvote to DB
+                        //Retract downvote from DB
+                    }
+                    //Upvote is "unvoted"
+                    else {
+                        up.setColorFilter(null);
+                        upvote = false;
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                        //retract upvote from DB
+                    }
+                });
+
+                //User clicked "downvote button"
+                down.setOnClickListener(v -> {
+                    if (!downvote) {
+                        down.setColorFilter(Color.RED);
+                        up.setColorFilter(null);
+                        downvote = true;
+                        upvote = false;
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
+                        //Send downvote to DB
+                        //Retract upvote from DB
+                    }
+                    //Downvote is "unvoted"
+                    else {
+                        down.setColorFilter(null);
+                        downvote = false;
+                        //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
+                        //Retract downvote from DB
+                    }
+                });
+
+                //User clicked "cancel button"
+                cancel.setOnClickListener(v -> dialog.dismiss());
+                dialog.show();
+                return true;
             });
         }
 
@@ -340,13 +309,12 @@ public class MapFragment extends Fragment implements
             Log.i(TAG, "in onConnected(), starting location updates");
             startLocationUpdates();
         }
-        String title = "Capstone Presentation";
-        String description = "This is the event that we're using for our capstone presentation. If you're reading this right" +
-                " now you're paying too much attention to the slides and not what we're saying.";
-        String dummycreator = "AaronisCool26";
-        int popularity = 250;
-
-        createMarker(title, description, (mCurrentLocation.getLatitude() + .01), (mCurrentLocation.getLongitude() + .01), dummycreator, popularity);
+        ArrayList<Event> events = BeaconData.getEvents();
+        if (events != null) {
+            for (Event event : events) {
+                createMarker(event.name, event.description, event.latitude, event.longitude, "Creator", 150);
+            }
+        }
 
         //populate the map with saved events (need to change this to check database too)
         String eventListJson = SavedPreferences.getString(getContext(), "eventListJson");
@@ -378,7 +346,7 @@ public class MapFragment extends Fragment implements
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());

@@ -5,14 +5,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,13 +20,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconEvent;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.google.android.gms.maps.model.Marker;
@@ -39,17 +33,12 @@ import com.google.gson.Gson;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String stringNotFound = "STRING_NOT_FOUND";
     private static final int l33tHacks = 12345;
-    NotificationCompat.Builder notification;
     static List<BeaconEvent> eventList;
+    NotificationCompat.Builder notification;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,15 +51,14 @@ public class MainActivity extends AppCompatActivity {
         notification.setAutoCancel(true); //deletes notification after u click on it
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onAddEvent(v);
-            }
-        });
+        fab.setOnClickListener(this::onAddEvent);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if (!BeaconData.isInitialized()) {
+            BeaconData.initiate(this);
+        }
     }
 
     public void debugPrint(String message) {
@@ -90,30 +78,28 @@ public class MainActivity extends AppCompatActivity {
         final EditText eventDescription = (EditText) dialogView.findViewById(R.id.createEventDescription);
 
         Button createButton = (Button) dialogView.findViewById(R.id.createEventButton);
-        createButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                String title = eventName.getText().toString();
-                String description = eventDescription.getText().toString();
+        createButton.setOnClickListener(v -> {
+            String title = eventName.getText().toString();
+            String description = eventDescription.getText().toString();
 
-                // both title and description need something in their fields, don't even close dialog if one of the fields is empty (need to add more error handling (prevent whitespace characters only etc.)
-                if (!title.equals("") && !description.equals("")) {
-                    dialog.dismiss();
-                    if (MapFragment.mapFragment != null) {
-                        MapFragment mFrag = MapFragment.mapFragment;
-                        Location currLocation = mFrag.getCurrentLocation();
-                        Double latitude = currLocation.getLatitude();
-                        Double longitude = currLocation.getLongitude();
-                        mFrag.createMarker(title, description, latitude, longitude, "user", 0);
-                        //store in eventList and save list, save list as json in savedPreferences
-                        eventList.add(new BeaconEvent(1, title, description, new Timestamp(System.currentTimeMillis()), "user", latitude, longitude, null));
-                        Gson gson = new Gson();
-                        String eventListAsString = gson.toJson(eventList);
-                        SavedPreferences.saveString(context, "eventListJson", eventListAsString);
-                        debugPrint("success! mapPinCreated!!!!!!!!");
-                    } else {
-                        debugPrint("mapFragment is NULL");
-                    }
+            // both title and description need something in their fields, don't even close dialog if one of the fields is empty (need to add more error handling (prevent whitespace characters only etc.)
+            if (!title.equals("") && !description.equals("")) {
+                dialog.dismiss();
+                if (MapFragment.mapFragment != null) {
+                    MapFragment mFrag = MapFragment.mapFragment;
+                    Location currLocation = mFrag.getCurrentLocation();
+                    Double latitude = currLocation.getLatitude();
+                    Double longitude = currLocation.getLongitude();
+                    mFrag.createMarker(title, description, latitude, longitude, "user", 0);
+                    //store in eventList and save list, save list as json in savedPreferences
+                    BeaconData.createEvent(title, description, latitude, longitude);
+                    eventList.add(new BeaconEvent(1, title, description, new Timestamp(System.currentTimeMillis()), "user", latitude, longitude, null));
+                    Gson gson = new Gson();
+                    String eventListAsString = gson.toJson(eventList);
+                    SavedPreferences.saveString(context, "eventListJson", eventListAsString);
+                    debugPrint("success! mapPinCreated!");
+                } else {
+                    debugPrint("mapFragment is NULL");
                 }
             }
         });
@@ -143,12 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
         //cancel button, closes add event dialog, not needed but nice to have
         Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEventButton);
-        cancelButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
 
 
 
@@ -177,63 +158,72 @@ public class MainActivity extends AppCompatActivity {
         eventPopularity.setText(popularity);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
-        saveButton.setOnClickListener(new View.OnClickListener() { //after user edits event and wants to save changes
-            @Override
-            public void onClick(View v) {
-                //update user's own event on device
-                //save user made event as 2 strings (name and description)
-                String newTitle = eventTitle.getText().toString();
-                String newDescription = eventDescription.getText().toString();
+        saveButton.setOnClickListener(v -> {
+            //update user's own event on device
+            //save user made event as 2 strings (name and description)
+            String newTitle = eventTitle.getText().toString();
+            String newDescription = eventDescription.getText().toString();
 
-                if (!newTitle.equals("") && !newDescription.equals("")) {
-                    for (int i = 0; i < eventList.size(); i++) {
-                        BeaconEvent event = eventList.get(i);
-                        if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
-                            event.setName(newTitle);
-                            event.setDescription(newDescription);
-                            if (MapFragment.mapFragment != null) {
-                                MapFragment mFrag = MapFragment.mapFragment;
-                                marker.remove();
-                                mFrag.createMarker(newTitle, newDescription, event.getLatitude(), event.getLongitude(), event.getCreatorName(), 0);
-                            }
-                            break; //only find 1
+            if (!newTitle.equals("") && !newDescription.equals("")) {
+                for (int i = 0; i < eventList.size(); i++) {
+                    BeaconEvent event = eventList.get(i);
+                    if (event.getCreatorName().equals("user") && event.getName().equals(title) && event.getDescription().equals(description)) {
+                        event.setName(newTitle);
+                        event.setDescription(newDescription);
+                        if (MapFragment.mapFragment != null) {
+                            MapFragment mFrag = MapFragment.mapFragment;
+                            marker.remove();
+                            mFrag.createMarker(newTitle, newDescription, event.getLatitude(), event.getLongitude(), event.getCreatorName(), 0);
                         }
+                        break; //only find 1
                     }
-                    SavedPreferences.removeString(context, "eventListJson");
-                    SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
-
-                    //!!!!need code for updating event in database
-                    dialog.dismiss();
                 }
-            }
-        });
+                SavedPreferences.removeString(context, "eventListJson");
+                SavedPreferences.saveString(context, "eventListJson", new Gson().toJson(eventList));
 
-        Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEditEventBtn);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //user doesn't want to save changes, close dialog
+                //!!!!need code for updating event in database
                 dialog.dismiss();
             }
         });
 
+        Button cancelButton = (Button) dialogView.findViewById(R.id.cancelEditEventBtn);
+        cancelButton.setOnClickListener(v -> {
+            //user doesn't want to save changes, close dialog
+            dialog.dismiss();
+        });
+
 
         final Button deleteButton = (Button) dialogView.findViewById(R.id.deleteEventBtn);
-        deleteButton.setOnClickListener(new View.OnClickListener() {
+        deleteButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Button delBtn = deleteButton;
-                delBtn.setTextColor(white);
-                delBtn.getBackground().setTint(delRed);
-                delBtn.setText("Delete (Hold)");
+                deleteButton.setTextColor(white);
+                deleteButton.getBackground().setTint(delRed);
+                deleteButton.setText("Delete (Hold)");
 
                 final DonutProgress donutProgress = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
                 donutProgress.setVisibility(View.VISIBLE);
 
-                delBtn.setOnTouchListener(new View.OnTouchListener() {
+                deleteButton.setOnTouchListener(new View.OnTouchListener() {
                     private Handler progressHandler;
                     private DonutProgress delDonut;
                     private int progress = 0;
+                    Runnable progressUp = new Runnable() {
+                        @Override
+                        public void run() {
+                            if (progress < 100) {
+                                delDonut.setDonut_progress((progress += 1) + "");
+                                progressHandler.postDelayed(this, 1);
+                            } else {
+                                debugPrint("hey i'm in runnable at/past 100");
+                                progressHandler.removeCallbacks(progressUp);
+                                progressHandler = null;
+                                //delete event function call
+                                deleteEvent(title, "user");
+                                dialog.dismiss();
+                            }
+                        }
+                    };
 
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -266,22 +256,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return false;
                     }
-
-                    Runnable progressUp = new Runnable() {
-                        @Override public void run() {
-                            if (progress < 100) {
-                                delDonut.setDonut_progress((progress += 1) + "");
-                                progressHandler.postDelayed(this, 1);
-                            } else {
-                                debugPrint("hey i'm in runnable at/past 100");
-                                progressHandler.removeCallbacks(progressUp);
-                                progressHandler = null;
-                                //delete event function call
-                                deleteEvent(title, "user");
-                                dialog.dismiss();
-                            }
-                        }
-                    };
 
                     //place holder for actual deleting event in database (right now just deletes it 'locally')
                     void deleteEvent(String title, String creatorName) {

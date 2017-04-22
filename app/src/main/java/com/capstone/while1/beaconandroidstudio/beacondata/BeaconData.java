@@ -24,7 +24,7 @@ import java.util.TimeZone;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-class BeaconData {
+public class BeaconData {
     /*
         Constants
      */
@@ -149,10 +149,7 @@ class BeaconData {
     }
 
     // Done - Init
-    public static void initiate(Context context, float longitude, float latitude) {
-        BeaconData.latitude = latitude;
-        BeaconData.longitude = longitude;
-
+    public static void initiate(Context context) {
         // Initiate network queue
         queue = Volley.newRequestQueue(context);
 
@@ -330,7 +327,7 @@ class BeaconData {
                                     eventData.remove(indexToDelete);
                                 } else {
                                     // The event was not deleted...
-                                    if (eventExists(jsonObject.getInt("id")) == false) {
+                                    if (!eventExists(jsonObject.getInt("id"))) {
                                         // Create the new event
                                         eventData.add(event);
                                     } else {
@@ -429,7 +426,7 @@ class BeaconData {
                         System.err.println(ex);
                     }
                 },
-                error -> System.err.println(error));
+                System.err::println);
 
         queue.add(request);
     }
@@ -506,7 +503,7 @@ class BeaconData {
     }
 
     // Done - Init
-    public static void createEvent(String name, String description) {
+    public static void createEvent(String name, String description, double latitude, double longitude) {
         String queryString = generateQueryString("token", loginToken);
         String uri = restAPIDomain + "/api/Events/Create" + queryString;
 
@@ -514,6 +511,8 @@ class BeaconData {
         try {
             obj.put("name", name);
             obj.put("description", description);
+            obj.put("latitude", latitude);
+            obj.put("longitude", longitude);
         } catch (JSONException ex) {
             System.err.println(ex);
         }
@@ -547,16 +546,14 @@ class BeaconData {
                         System.err.println(ex);
                     }
                 },
-                error -> {
-                    System.err.println(error);
-                });
+                System.err::println);
 
         queue.add(request);
     }
 
     // Done - Init
     public static void voteUpOnEvent(int id) {
-        if (haveVotedForEvent(id) == false) {
+        if (!haveVotedForEvent(id)) {
             System.err.println("Already voted for this event...");
             return;
         }
@@ -570,6 +567,7 @@ class BeaconData {
                         if (jobj.getBoolean("wasSuccessful")) {
                             eventsVotedFor.add(id);
                             Event event = getEvent(id);
+                            assert event != null;
                             event.voteCount++;
                         } else {
                             System.err.println(jobj.getString("Message"));
@@ -600,6 +598,7 @@ class BeaconData {
                         if (jobj.getBoolean("wasSuccessful")) {
                             eventsVotedFor.add(id);
                             Event event = getEvent(id);
+                            assert event != null;
                             event.voteCount--;
                         } else {
                             System.err.println(jobj.getString("Message"));
@@ -617,7 +616,7 @@ class BeaconData {
     // Done - Init
     public static void unvoteOnEvent(int id) {
         // Make sure that the event was voted for...
-        if (haveVotedForEvent(id) == false) {
+        if (!haveVotedForEvent(id)) {
             System.err.println("Can't remove a vote for an event that you never voted for...");
             return;
         }
