@@ -10,6 +10,8 @@ import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
+
 public class SplashActivity extends AppCompatActivity implements OnRequestPermissionsResultCallback {
     /**
      * The code used when requesting permissions
@@ -19,7 +21,7 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
 
     @SuppressWarnings("rawtypes")
     private Class getNextActivityClass() {
-        if (SavedPreferences.getUserName(getApplicationContext()).length() == 0)
+        if (!BeaconData.userHasLocallySavedLoginInformation(this))
             return LoginActivity.class;
         else
             return MainActivity.class;
