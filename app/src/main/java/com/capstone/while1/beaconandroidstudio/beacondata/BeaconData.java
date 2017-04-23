@@ -31,13 +31,13 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-
     private static String restAPIDomain = "http://f5183551.ngrok.io";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
-    private static String username = "joemelt101";
-    private static String password = "password";
+    private static String username = null;
+    private static String password = null;
+    private static Integer currentUserId = null;
     private static RequestQueue queue = null;
     private static BeaconConsumer<ArrayList<Event>> updatedEventHandler = null;
     private static Runnable onInitialized = null;
@@ -51,6 +51,10 @@ public class BeaconData {
     private static Boolean userHasLocallySavedLoginInformation(Context context) {
         File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
         return loginFile.exists(); // If it exists, then there is information stored locally for this user...
+    }
+
+    private static Integer getCurrentUserId() {
+        return currentUserId;
     }
 
     // Done - Tested
@@ -175,63 +179,123 @@ public class BeaconData {
         BeaconData.onInitialized = onInitialized;
     }
 
-    // Done - Init
-    public static void initiate(Context context, final Float latitude, final Float longitude) {
-        // Initiate network queue
-        queue = Volley.newRequestQueue(context);
-
-        boolean wasAbleToRetrieveLoginInformation = tryToLoadUserInfo(context);
-
-        // If there is already a stored username and password, then use them to login
-        if (wasAbleToRetrieveLoginInformation) {
-            // login to get a token
-            login(new BeaconConsumer<String>() {
-                @Override
-                public void accept(String token) {
-                    // On Successful login
-                    BeaconData.loginToken = token;
-
-                    // Now get the events voted for
-                    getEventsVotedFor(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    System.out.println("Successfully grabbed the events voted for");
-                                    if (isInitialized()) {
-                                        onInitialized.run();
-                                    }
-                                }
-                            },
-                            new BeaconConsumer<String>()
-                            {
-                                @Override
-                                public void accept(String s) {
-                                    System.out.println(s);
-                                }
-                            }
-                    );
-
-                    // Now get the nearby event data
-                    downloadAllEventsInArea(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Successfully download the updates, see if we're ready to call onInitialized()
-                            if (isInitialized()) {
-                                onInitialized.run();
-                            }
-                        }
-                    }, latitude, longitude);
-                }
-            }, new BeaconConsumer<String>() {
-                @Override
-                public void accept(String errorMsg) {
-                    System.out.println(errorMsg);
-                }
-            });
-        } else {
-            System.err.println("Need login information before initialization is possible! Call registerLogin() first if there is no current login information.");
+    public static void initiateQueue(Context context) {
+        if (queue == null) {
+            queue = Volley.newRequestQueue(context);
         }
     }
+
+    public static boolean isQueueInitialized() {
+        return queue != null;
+    }
+
+    public static boolean isLoggedIn() {
+        return loginToken != null;
+    }
+
+    public static void retrieveLoginToken(final BeaconConsumer<Integer> success, final Runnable failed) {
+         login(new BeaconConsumer2<String, Integer>() {
+                   @Override
+                   public void accept(String token, Integer userId) {
+                       BeaconData.loginToken = token;
+                       success.accept(userId);
+                   }
+               },
+                 new BeaconConsumer<String>() {
+                     @Override
+                     public void accept(String err) {
+                         System.err.println(err);
+                         failed.run();
+                     }
+                 });
+    }
+
+    public static void syncVotesForEvents(final Runnable success, final Runnable failed) {
+        getEventsVotedFor(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println("Successfully grabbed the events voted for");
+                        if (isInitialized()) {
+                            onInitialized.run();
+                        }
+                    }
+                },
+                new BeaconConsumer<String>()
+                {
+                    @Override
+                    public void accept(String s) {
+                        System.out.println(s);
+                    }
+                }
+        );
+    }
+
+    public static boolean areVotesLoaded() {
+        return eventsVotedFor != null;
+    }
+
+    public static boolean areEventsDownloadedInitially() {
+        return eventData != null;
+    }
+
+    // Done - Init
+//    public static void initiate(Context context, final Float latitude, final Float longitude) {
+//        // Initiate network queue
+//        queue = Volley.newRequestQueue(context);
+//
+//        boolean wasAbleToRetrieveLoginInformation = tryToLoadUserInfo(context);
+//
+//        // If there is already a stored username and password, then use them to login
+//        if (wasAbleToRetrieveLoginInformation) {
+//            // login to get a token
+//            login(new BeaconConsumer<String>() {
+//                @Override
+//                public void accept(String token) {
+//                    // On Successful login
+//                    BeaconData.loginToken = token;
+//
+//                    // Now get the events voted for
+//                    getEventsVotedFor(
+//                            new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    System.out.println("Successfully grabbed the events voted for");
+//                                    if (isInitialized()) {
+//                                        onInitialized.run();
+//                                    }
+//                                }
+//                            },
+//                            new BeaconConsumer<String>()
+//                            {
+//                                @Override
+//                                public void accept(String s) {
+//                                    System.out.println(s);
+//                                }
+//                            }
+//                    );
+//
+//                    // Now get the nearby event data
+//                    downloadAllEventsInArea(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            // Successfully download the updates, see if we're ready to call onInitialized()
+//                            if (isInitialized()) {
+//                                onInitialized.run();
+//                            }
+//                        }
+//                    }, latitude, longitude);
+//                }
+//            }, new BeaconConsumer<String>() {
+//                @Override
+//                public void accept(String errorMsg) {
+//                    System.out.println(errorMsg);
+//                }
+//            });
+//        } else {
+//            System.err.println("Need login information before initialization is possible! Call registerLogin() first if there is no current login information.");
+//        }
+//    }
 
     // Done - Init
     private static String generateQueryString(String... strings) {
@@ -252,12 +316,12 @@ public class BeaconData {
     }
 
     // Done - Init
-    private static void login(BeaconConsumer<String> onSuccess, BeaconConsumer<String> onFailure) {
+    private static void login(BeaconConsumer2<String, Integer> onSuccess, BeaconConsumer<String> onFailure) {
         login(username, password, onSuccess, onFailure);
     }
 
     // Done - Init
-    private static void login(String username, String password, final BeaconConsumer<String> onSuccess, final BeaconConsumer<String> onFailure) {
+    private static void login(String username, String password, final BeaconConsumer2<String, Integer> onSuccess, final BeaconConsumer<String> onFailure) {
         BeaconData.username = username;
         BeaconData.password = password;
         String queryString = generateQueryString("username", username, "password", password);
@@ -272,7 +336,8 @@ public class BeaconData {
 
                             if (loginSuccessful) {
                                 String token = jobj.getString("token");
-                                onSuccess.accept(token);
+                                int id = jobj.getInt("id");
+                                onSuccess.accept(token, id);
                             } else {
                                 onFailure.accept("Invalid Credentials");
                             }
@@ -771,7 +836,7 @@ public class BeaconData {
     // Done - Init
     public static void getEventsVotedFor(final Runnable onSuccess, final BeaconConsumer<String> onFailure) {
         String queryString = generateQueryString("token", loginToken);
-        String uri = restAPIDomain + "/api/Events/votedFor" + queryString;
+        String uri = restAPIDomain + "/api/Events/VotedFor" + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
                 new Response.Listener<JSONObject>() {

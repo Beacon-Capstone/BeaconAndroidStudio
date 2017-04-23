@@ -15,10 +15,8 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // If BeaconData is not initialized, initiate it!
-
-        // TODO: Replace
-        if (! BeaconData.isInitialized()) {
-            BeaconData.initiate(this, 1f, 1f);
+        if (! BeaconData.isQueueInitialized()) {
+            BeaconData.initiateQueue(this);
         }
 
         super.onCreate(savedInstanceState);
@@ -31,13 +29,19 @@ public class RegisterActivity extends AppCompatActivity {
         EditText passInput = (EditText) findViewById(R.id.passwordInput);
         EditText verifyPassInput = (EditText) findViewById(R.id.verifyPasswordInput);
         TextView messageOutput = (TextView) findViewById(R.id.messageOutput);
-        if (verifyPassInput.getText().toString().equals(passInput.getText().toString())) {
-            messageOutput.setText("Registration Successful\nusername: " + userInput.getText() +
-                    "\nemail: " + emailInput.getText());
-            Log.d("BeaconAndroidStudio", "Registration Successful\nusername: " + userInput.getText() +
-                    "\nemail: " + emailInput.getText());
-        } else {
+
+        String username = userInput.getText().toString();
+        String password = passInput.getText().toString();
+        String email = emailInput.getText().toString();
+        String verifyPassword = verifyPassInput.getText().toString();
+
+        if (! password.equals(verifyPassword)) {
             messageOutput.setText("Registration failed: password fields don't match.");
+            return;
+        }
+        else {
+            // Verify passed
+
         }
     }
 
