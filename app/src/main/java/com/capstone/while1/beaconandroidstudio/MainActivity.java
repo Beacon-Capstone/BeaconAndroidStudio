@@ -254,7 +254,6 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
 
-                    //place holder for actual deleting event in database (right now just deletes it 'locally')
                     void deleteEvent(Marker marker, int eventId) {
                         BeaconData.deleteEvent(eventId);
                         marker.remove();

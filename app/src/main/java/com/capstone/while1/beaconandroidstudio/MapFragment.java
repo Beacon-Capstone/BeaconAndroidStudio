@@ -206,8 +206,11 @@ public class MapFragment extends Fragment implements
         //noinspection MissingPermission
         //Adds marker to map based on latitude and longitude parameters
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        if (event.creatorId == 0) {
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))); //default marker color is blue
+        //creatorId is an Integer which is an object, hence the .equals()
+        if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
+            //make user-made icons different color to help distinguish
+            mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
@@ -215,7 +218,7 @@ public class MapFragment extends Fragment implements
                     return true;
                 }
             });
-        } else {
+        } else { //events not made by user (made by other users)
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker arg0) {
@@ -237,6 +240,7 @@ public class MapFragment extends Fragment implements
                     creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
 
 
+                    //change color of marker to green to let user know they've already looked at it
                     mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     final ImageButton up = (ImageButton) dialog.findViewById(R.id.upVoteBtn);
                     final ImageButton down = (ImageButton) dialog.findViewById(R.id.downVoteBtn);
@@ -393,8 +397,8 @@ public class MapFragment extends Fragment implements
                 startLocationUpdates();
             }
         }
-        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
-        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
+//        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
+//        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
         ArrayList<Event> events = BeaconData.getEvents();
         if (events != null) {
             for (Event event : events) {
