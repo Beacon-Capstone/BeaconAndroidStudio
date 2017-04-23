@@ -244,7 +244,7 @@ public class MapFragment extends Fragment implements
                     //final boolean[] upvote = {false, true, false};
                     //final boolean[] downvote = {false, true, false};
                     //User has clicked the "upvote button"
-                    MapFragment.this.upvoteDownvoteListener(up, down);
+                    MapFragment.this.upvoteDownvoteListener(up, down, event, creatorPopularityTextView);
 
                     //User clicked "cancel button"
                     closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -261,7 +261,7 @@ public class MapFragment extends Fragment implements
 
     }
 
-    private void upvoteDownvoteListener(final ImageButton up, final ImageButton down)
+    private void upvoteDownvoteListener(final ImageButton up, final ImageButton down, final Event event, final TextView popularText)
     {
         if (upvote) {
             up.setColorFilter(Color.GREEN);
@@ -274,11 +274,15 @@ public class MapFragment extends Fragment implements
         up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!upvote) {
+                //NOT FINISHED, need to implement hasUpVoted method
+                if (BeaconData.haveVotedForEvent(event.id)) {
                     up.setColorFilter(Color.GREEN);
                     down.setColorFilter(null);
-                    upvote = true;
-                    downvote = false;
+                    BeaconData.voteUpOnEvent(event.id);
+                    BeaconData.updateEvent(event);
+                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    //upvote = true;
+                    //downvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
                     //Send upvote to DB
                     //Retract downvote from DB
@@ -286,7 +290,10 @@ public class MapFragment extends Fragment implements
                 //Upvote is "unvoted"
                 else {
                     up.setColorFilter(null);
-                    upvote = false;
+                    BeaconData.unvoteOnEvent(event.id);
+                    BeaconData.updateEvent(event);
+                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    //upvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                     //retract upvote from DB
                 }
@@ -300,8 +307,11 @@ public class MapFragment extends Fragment implements
                 if (!downvote) {
                     down.setColorFilter(Color.RED);
                     up.setColorFilter(null);
-                    downvote = true;
-                    upvote = false;
+                    BeaconData.voteDownOnEvent(event.id);
+                    BeaconData.updateEvent(event);
+                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    //downvote = true;
+                    //upvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
                     //Send downvote to DB
                     //Retract upvote from DB
@@ -309,7 +319,10 @@ public class MapFragment extends Fragment implements
                 //Downvote is "unvoted"
                 else {
                     down.setColorFilter(null);
-                    downvote = false;
+                    BeaconData.unvoteOnEvent(event.id);
+                    BeaconData.updateEvent(event);
+                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    //downvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                     //Retract downvote from DB
                 }

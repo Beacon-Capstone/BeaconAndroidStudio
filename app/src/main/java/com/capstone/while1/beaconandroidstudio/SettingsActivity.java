@@ -7,6 +7,8 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
+
 public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +65,9 @@ public class SettingsActivity extends PreferenceActivity {
                 logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
-                        PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity().getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
+                        PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity()
+                                .getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
+                        BeaconData.deleteLoginInformation(getActivity());
                         SettingsFragment.this.startActivity(new Intent(getActivity(), SplashActivity.class));
                         return false;
                     }
