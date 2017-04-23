@@ -39,28 +39,20 @@ public class SettingsActivity extends PreferenceActivity {
                 Preference logout = findPreference("logout");
                 Preference userPassword = findPreference("userPassword");
                 Preference userEmail = findPreference("userEmail");
-                Preference username = findPreference("username");
 
-//                userEmail.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//                    @Override
-//                    public boolean onPreferenceChange(Preference preference) {
-//                        return true;
-//                    }
-//                });
-//
-//                username.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-//                    @Override
-//                    public boolean onPreferenceChange(Preference preference) {
-//                        return true;
-//                    }
-//                });
-//
-//                userPassword.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-//                    @Override
-//                    public boolean onPreferenceClick(Preference preference) {
-//                        return true;
-//                    }
-//                });
+                userEmail.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        return false;
+                    }
+                });
+
+                userPassword.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        return true;
+                    }
+                });
 
                 logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
