@@ -2,6 +2,7 @@ package com.capstone.while1.beaconandroidstudio;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -58,8 +60,20 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
     }
 
-    public void debugPrint(String message) {
+    public static void debugPrint(String message) {
         Log.d("BeaconAndroidStudio", message);
+    }
+
+    /**
+     * it's really annoying when you are filling in a form in android and the keyboard doesn't go away when you click
+     * a submit button. this method can be used to close the keyboard inside a button's onclick method
+     */
+    public static void closeKeyboard(Activity activity) {
+        View view = activity.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     public void onAddEvent(View view) {

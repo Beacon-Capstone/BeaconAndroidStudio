@@ -1,11 +1,16 @@
 package com.capstone.while1.beaconandroidstudio;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
@@ -46,17 +51,25 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void login(View v) {
-        EditText userInput = (EditText) findViewById(R.id.loginUserInput);
-        EditText passInput = (EditText) findViewById(R.id.loginPassInput);
+        //hide keyboard when button is clicked
+        MainActivity.closeKeyboard(this);
 
-        if (/*userInput == null || passInput == null*/ false) {
-            Log.d("BeaconAndroidStudio", "userInput or passInput is null");
+        final String username = ((EditText)findViewById(R.id.loginUserInput)).getText().toString();
+        final String password = ((EditText)findViewById(R.id.loginPassInput)).getText().toString();
+        final TextView messageOutput = (TextView) LoginActivity.this.findViewById(R.id.messageOutput);
+        messageOutput.setText(""); //whether or not there was an error in previous method call, clear it when login button clicked
+
+        if (username.equals("") || password.equals("")) {
+            messageOutput.setText("All fields must be set.");
         } else {
-            final String username = userInput.getText().toString();
-            final String password = passInput.getText().toString();
+            final Button loginButton = (Button) findViewById(R.id.loginButton);
+            loginButton.setClickable(false); //don't let user spam login button
+            final ProgressBar loginSpinner = (ProgressBar) findViewById(R.id.loginSpinner);
+            loginSpinner.setVisibility(View.VISIBLE);
 
-            // Login doesn't exist yet, because this view loaded
-            // Send off the username and password
+            /*if this runs forever user can't click button again unless they restart the app,
+            or they could switch to register view and then back to login (which basically loads a brand new instance of the view)
+             */
             BeaconData.isValidLogin(username, password,
                     new Runnable() {
                         @Override
@@ -66,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             LoginActivity.this.startActivity(intent);
-
+                            loginSpinner.setVisibility(View.GONE);
                             LoginActivity.this.finish();
                         }
                     },
@@ -74,15 +87,17 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             // Failure!
-                            TextView messageOutput = (TextView) LoginActivity.this.findViewById(R.id.messageOutput);
-                            messageOutput.setText("Incorrect user/pass. Hint: user :: pass");
+
+                            messageOutput.setText("Incorrect username and or password.");
+                            loginSpinner.setVisibility(View.GONE);
+                            loginButton.setClickable(true);
                         }
                     });
+
         }
     }
 
     public void goToRegisterPage(View v) {
-        Intent intent = new Intent(this, RegisterActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, RegisterActivity.class));
     }
 }
