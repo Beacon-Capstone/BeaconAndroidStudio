@@ -1,8 +1,13 @@
 package com.capstone.while1.beaconandroidstudio;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -123,5 +128,40 @@ public class LoginActivity extends AppCompatActivity {
     public void goToRegisterPage(View v) {
         this.finish();
         startActivity(new Intent(this, RegisterActivity.class));
+    }
+
+    //TODO: delete this/move to main activity
+    public void notificationExample(View view) {
+        final NotificationCompat.Builder notification;
+
+        notification = new NotificationCompat.Builder(this);
+        notification.setAutoCancel(true); //deletes notification after u click on it
+
+        notification.setSmallIcon(R.mipmap.ic_launcher);
+        notification.setTicker("This is the ticker");
+        notification.setWhen(System.currentTimeMillis());
+        notification.setContentTitle("BeaconApp Test");
+        notification.setContentText("New event: play with SANICS at speaker circle!");
+        //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
+        notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notification.setContentIntent(pendingIntent);
+
+        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        final Handler handler = new Handler();
+
+        MainActivity.debugPrint("sending notification in 10 seconds...");
+        //do notification after 10 seconds => tested and it works if the app is running in background
+        // if they actually quit/close the app rather than just hitting home button or locking screen the notification does not appear
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                nm.notify(MainActivity.l33tHacks, notification.build());
+                MainActivity.debugPrint("SENT NOTIFICATION!");
+            }
+        }, 10000);
     }
 }

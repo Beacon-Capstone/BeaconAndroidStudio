@@ -3,6 +3,7 @@ package com.capstone.while1.beaconandroidstudio;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -38,7 +39,7 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int l33tHacks = 12345;
+    static final int l33tHacks = 12345;
     NotificationCompat.Builder notification;
 
     @Override
@@ -284,20 +285,33 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    public void notificationExample(View view) {
-        notification.setSmallIcon(R.mipmap.ic_launcher);
-        notification.setTicker("This is the ticker");
-        notification.setWhen(System.currentTimeMillis());
-        notification.setContentTitle("BeaconApp Test");
-        notification.setContentText("New event: play with SANICS at speaker circle!");
-
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setContentIntent(pendingIntent);
-
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(l33tHacks, notification.build());
-    }
+    //commenting this out temporarily to test in loginactivity (because i can't login)
+//    public void notificationExample(View view) {
+//        notification.setSmallIcon(R.mipmap.ic_launcher);
+//        notification.setTicker("This is the ticker");
+//        notification.setWhen(System.currentTimeMillis());
+//        notification.setContentTitle("BeaconApp Test");
+//        notification.setContentText("New event: play with SANICS at speaker circle!");
+//    //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
+//        notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+//
+//        Intent intent = new Intent(this, MainActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        notification.setContentIntent(pendingIntent);
+//
+//        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//
+//        final Handler handler = new Handler();
+//
+//        //do notification after 10 seconds (testing)
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                nm.notify(l33tHacks, notification.build());
+//                MainActivity.debugPrint("SENT NOTIFICATION!");
+//            }
+//        }, 10000);
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
