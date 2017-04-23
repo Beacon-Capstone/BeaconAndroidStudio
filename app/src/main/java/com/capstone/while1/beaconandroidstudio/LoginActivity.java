@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 
 public class LoginActivity extends AppCompatActivity {
@@ -19,10 +20,24 @@ public class LoginActivity extends AppCompatActivity {
             BeaconData.initiateQueue(this);
         }
 
+        final LoginActivity activity = this;
+
         // If already logged in, go to the map page immediately
         if (BeaconData.tryToLoadUserInfo(this)) {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            BeaconData.retrieveLoginToken(
+                    new BeaconConsumer<Integer>() {
+                         @Override
+                         public void accept(Integer obj) {
+                             Intent intent = new Intent(activity, MainActivity.class);
+                             startActivity(intent);
+                         }
+                    },
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            System.err.println("Failed to login...");
+                        }
+                    });
         }
 
         // Else, request a login

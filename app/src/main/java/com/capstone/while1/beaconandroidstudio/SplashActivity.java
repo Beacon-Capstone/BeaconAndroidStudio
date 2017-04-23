@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 
 public class SplashActivity extends AppCompatActivity implements OnRequestPermissionsResultCallback {
@@ -23,8 +24,33 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
     private Class getNextActivityClass() {
         if (!BeaconData.userHasLocallySavedLoginInformation(this))
             return LoginActivity.class;
-        else
+        else {
+            // If BeaconData is not initialized, initiate it!
+            if (! BeaconData.isQueueInitialized()) {
+                BeaconData.initiateQueue(this);
+            }
+
+            final SplashActivity activity = this;
+
+            // If already logged in, go to the map page immediately
+            if (BeaconData.tryToLoadUserInfo(this)) {
+                BeaconData.retrieveLoginToken(
+                        new BeaconConsumer<Integer>() {
+                            @Override
+                            public void accept(Integer obj) {
+                                Intent intent = new Intent(activity, MainActivity.class);
+                                startActivity(intent);
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                System.err.println("Failed to login...");
+                            }
+                        });
+            }
             return MainActivity.class;
+        }
     }
 
     @Override
