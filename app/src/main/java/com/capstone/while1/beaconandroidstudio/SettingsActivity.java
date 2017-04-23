@@ -1,11 +1,14 @@
 package com.capstone.while1.beaconandroidstudio;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
+import android.view.View;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 
@@ -38,18 +41,33 @@ public class SettingsActivity extends PreferenceActivity {
                 addPreferencesFromResource(R.xml.preferences);
                 Preference logout = findPreference("logout");
                 Preference userPassword = findPreference("userPassword");
-                Preference userEmail = findPreference("userEmail");
+                Preference userEmail = findPreference("userEmailAddress");
 
-                userEmail.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                userEmail.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        return false;
+                    public boolean onPreferenceClick(Preference preference) {
+                        Activity settingsActivity = getActivity();
+                        AlertDialog.Builder builder = new AlertDialog.Builder(settingsActivity);
+                        final View dialogView = settingsActivity.getLayoutInflater().inflate(R.layout.dialog_change_email, null);
+                        builder.setView(dialogView);
+                        builder.create().show();
+                        return true;
                     }
                 });
 
                 userPassword.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
+                        Activity settingsActivity = getActivity();
+                        AlertDialog.Builder builder = new AlertDialog.Builder(settingsActivity);
+                        final View dialogView = settingsActivity.getLayoutInflater().inflate(R.layout.dialog_change_password, null);
+                        builder.setView(dialogView);
+                        final AlertDialog dialog = builder.create();
+
+                        //button/changepassword code
+
+
+                        dialog.show();
                         return true;
                     }
                 });

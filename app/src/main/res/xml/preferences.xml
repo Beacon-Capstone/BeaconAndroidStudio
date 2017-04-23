@@ -29,7 +29,7 @@
 
     <PreferenceCategory
         android:title="Account Management">
-        <EditTextPreference
+        <Preference
             android:title="Email"
             android:summary="Change your email"
             android:key="userEmailAddress"/>
