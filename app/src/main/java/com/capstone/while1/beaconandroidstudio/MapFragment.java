@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.Event;
 import com.google.android.gms.common.ConnectionResult;
@@ -126,6 +127,74 @@ public class MapFragment extends Fragment implements
                 }
             }
         });
+
+        ////////////////////////////
+        // Initiate BeaconData Class
+
+        BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
+            @Override
+            public void accept(ArrayList<Event> updatedEvents) {
+                for (Event event : updatedEvents) {
+                    System.out.println(event);
+                }
+            }
+        });
+
+        if (! BeaconData.isQueueInitialized()) {
+            BeaconData.initiateQueue(getContext());
+        }
+
+        BeaconData.retrieveLoginToken(
+                new BeaconConsumer<Integer>() {
+                    @Override
+                    public void accept(Integer currentUserId) {
+                        // Login successful!
+                        if (! BeaconData.areVotesLoaded()) {
+                            BeaconData.getEventsVotedFor(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            // Success!
+                                        }
+                                    },
+                                    new BeaconConsumer<String>() {
+                                        @Override
+                                        public void accept(String err) {
+                                            // Failed...
+                                            System.err.println(err);
+                                        }
+                                    });
+                        }
+                    }
+                },
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (! BeaconData.areEventsDownloadedInitially()) {
+                            BeaconData.downloadAllEventsInArea(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Successfully downloaded all the events!
+                                    System.out.println("Downloaded all events!");
+                                }
+                            }, (float)mCurrentLocation.getLatitude(),
+                                    (float)mCurrentLocation.getLongitude());
+                        }
+                    }
+                }
+        );
+
+        BeaconData.setOnInitialized(new Runnable() {
+            @Override
+            public void run() {
+                // On initialized code goes here
+                // The votes, events, and token are all available now...
+            }
+        });
+
+
+        // End initiate BeaconData Class
+        ////////////////////////////////
 
         return rootView;
     }

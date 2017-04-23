@@ -48,7 +48,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    private static Boolean userHasLocallySavedLoginInformation(Context context) {
+    public static Boolean userHasLocallySavedLoginInformation(Context context) {
         File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
         return loginFile.exists(); // If it exists, then there is information stored locally for this user...
     }
@@ -364,7 +364,7 @@ public class BeaconData {
 
                             if (loginSuccessful) {
                                 String token = jobj.getString("token");
-                                int id = jobj.getInt("id");
+                                int id = jobj.getInt("userId");
                                 onSuccess.accept(token, id);
                             } else {
                                 onFailure.accept("Invalid Credentials");
@@ -396,7 +396,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static void downloadAllEventsInArea(final Runnable onSuccess, Float latitude, Float longitude) {
+    public static void downloadAllEventsInArea(final Runnable onSuccess, Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString());
         String uri = restAPIDomain + "/api/Events/da" + queryString;
 
@@ -951,7 +951,7 @@ public class BeaconData {
     }
 
     // Done - Final
-    public void setEventUpdateHandler(BeaconConsumer<ArrayList<Event>> updatedEventHandler) {
+    public static void setEventUpdateHandler(BeaconConsumer<ArrayList<Event>> updatedEventHandler) {
         BeaconData.updatedEventHandler = updatedEventHandler;
     }
 }

@@ -27,10 +27,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.Event;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.google.android.gms.maps.model.Marker;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private static final int l33tHacks = 12345;
