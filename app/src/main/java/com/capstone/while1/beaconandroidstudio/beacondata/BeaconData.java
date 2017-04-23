@@ -954,4 +954,33 @@ public class BeaconData {
     public static void setEventUpdateHandler(BeaconConsumer<ArrayList<Event>> updatedEventHandler) {
         BeaconData.updatedEventHandler = updatedEventHandler;
     }
+
+    public static void updateUserPassword(String currPass, String newPass) {
+        String queryString = generateQueryString("userId", currentUserId.toString(), "currPass", currPass, "newPass", newPass);
+        String uri = restAPIDomain + "/api/Users/changeUserPassword" + queryString;
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jobj) {
+                        try {
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                System.out.println("success");
+                            } else {
+                                System.err.println(jobj.getString("Message"));
+                            }
+                        } catch (JSONException ex) {
+                            System.err.println(ex);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.err.println(error);
+                    }
+                });
+
+        queue.add(request);
+    }
 }
