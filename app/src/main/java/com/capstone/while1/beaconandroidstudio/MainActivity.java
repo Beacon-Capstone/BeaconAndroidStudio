@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.widget.Toast;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -47,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(!BeaconData.isQueueInitialized())
+        {
+            BeaconData.initiateQueue(this);
+        }
 
         notification = new NotificationCompat.Builder(this);
         notification.setAutoCancel(true); //deletes notification after u click on it
@@ -96,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
                         //store in eventList and save list, save list as json in savedPreferences
                         BeaconData.createEvent(title, description, latitude, longitude);
                         MainActivity.this.debugPrint("success! mapPinCreated!");
+                        Context context = getApplicationContext();
+                        CharSequence successMessage = "Event Created";
+                        Toast toast = Toast.makeText(context, successMessage, Toast.LENGTH_SHORT);
+                        toast.show();
                     } else {
                         MainActivity.this.debugPrint("mapFragment is NULL");
                     }
