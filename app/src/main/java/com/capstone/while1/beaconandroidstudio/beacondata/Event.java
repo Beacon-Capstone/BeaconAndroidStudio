@@ -15,4 +15,23 @@ public class Event {
     public Integer voteCount;
     public String timeCreated;
     public Boolean deleted;
+
+
+    public Event(Integer id, Integer creatorId, String name, String description, String timeLastUpdated,
+                 Double latitude, Double longitude, Integer voteCount, String timeCreated, Boolean deleted) {
+        this.id = id;
+        this.creatorId = creatorId;
+        this.name = name;
+        this.description = description;
+        this.timeLastUpdated = timeLastUpdated;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.voteCount = voteCount;
+        this.timeCreated = timeCreated;
+        this.deleted = deleted;
+    }
+
+    public Event() {
+
+    }
 }

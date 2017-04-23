@@ -207,7 +207,7 @@ public class MapFragment extends Fragment implements
         //Adds marker to map based on latitude and longitude parameters
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        if (event.id == 0) {
+        if (event.creatorId == 0) {
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
@@ -234,7 +234,7 @@ public class MapFragment extends Fragment implements
                     descriptionTextView.setText(event.description);
                     descriptionTextView.setMovementMethod(new ScrollingMovementMethod());
                     final TextView creatorPopularityTextView = (TextView) dialog.findViewById(R.id.eventCreatorAndPopularity);
-                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"\nPopularity: " + event.voteCount);
+                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
 
 
                     mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
@@ -380,6 +380,8 @@ public class MapFragment extends Fragment implements
                 startLocationUpdates();
             }
         }
+        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
+        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
         ArrayList<Event> events = BeaconData.getEvents();
         if (events != null) {
             for (Event event : events) {

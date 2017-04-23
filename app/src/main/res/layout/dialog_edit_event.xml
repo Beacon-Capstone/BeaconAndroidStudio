@@ -28,7 +28,6 @@
         android:gravity="top"
         android:hint="Description"
         android:inputType="textMultiLine"
-        android:lines="7"
         android:scrollbarAlwaysDrawVerticalTrack="false"
         android:scrollbars="vertical"
         android:selectAllOnFocus="false"

@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         builder.setView(dialogView);
 
         final AlertDialog dialog = builder.create();
-        final Context context = getApplicationContext();
 
         //placeholder for create event logic
         final EditText eventName = (EditText) dialogView.findViewById(R.id.createEventName);
@@ -160,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         //set current details of event
         eventTitle.setText(event.name);
         eventDescription.setText(event.description);
-        eventPopularity.setText(event.voteCount);
+        eventPopularity.setText("Popularity: " + event.voteCount);
 
         Button saveButton = (Button) dialogView.findViewById(R.id.saveEditEventBtn);
         saveButton.setOnClickListener(new OnClickListener() {
