@@ -9,6 +9,8 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 
@@ -65,7 +67,25 @@ public class SettingsActivity extends PreferenceActivity {
                         final AlertDialog dialog = builder.create();
 
                         //button/changepassword code
+                        Button saveButton = (Button) dialogView.findViewById(R.id.saveChangePassword);
+                        saveButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                EditText currPassEditText = (EditText) dialogView.findViewById(R.id.currPassChangePassword);
+                                EditText newPassEditText = (EditText) dialogView.findViewById(R.id.newPassChangePassword);
+                                EditText verifyNewPassEditText = (EditText) dialogView.findViewById(R.id.verifyPassChangePassword);
 
+                                String currPass = currPassEditText.getText().toString();
+                                String newPass = newPassEditText.getText().toString();
+                                String verifyNewPass = verifyNewPassEditText.getText().toString();
+
+                                System.out.println(currPass);
+                                if (newPass.equals(verifyNewPass)) {
+                                    BeaconData.updateUserPassword(currPass, newPass);
+                                }
+                                dialog.dismiss();
+                            }
+                        });
 
                         dialog.show();
                         return true;
