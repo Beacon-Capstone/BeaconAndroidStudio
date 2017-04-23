@@ -234,7 +234,7 @@ public class MapFragment extends Fragment implements
                     descriptionTextView.setText(event.description);
                     descriptionTextView.setMovementMethod(new ScrollingMovementMethod());
                     final TextView creatorPopularityTextView = (TextView) dialog.findViewById(R.id.eventCreatorAndPopularity);
-                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"\nPopularity: " + event.voteCount);
+                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
 
 
                     mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
