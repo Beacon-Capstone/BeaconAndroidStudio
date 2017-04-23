@@ -38,7 +38,7 @@ public class SettingsActivity extends PreferenceActivity {
                 addPreferencesFromResource(R.xml.preferences);
                 Preference logout = findPreference("logout");
                 Preference userPassword = findPreference("userPassword");
-                Preference userEmail = findPreference("userEmail");
+                Preference userEmail = findPreference("userEmailAddress");
 
                 userEmail.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
