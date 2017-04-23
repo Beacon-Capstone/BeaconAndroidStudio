@@ -8,7 +8,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 public class BeaconData {
     /*
@@ -197,7 +195,7 @@ public class BeaconData {
 
     public static void isValidUsername(String username, final BeaconConsumer<Boolean> handler) {
         String query = generateQueryString("username", username);
-        String uri = restAPIDomain + "/api/Users/UsernameIsTaken";
+        String uri = restAPIDomain + "/api/Users/UsernameIsTaken" + query;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
             new Response.Listener<JSONObject>() {
@@ -219,6 +217,8 @@ public class BeaconData {
                     System.err.println(error);
                 }
             });
+
+        queue.add(request);
     }
 
     public static void retrieveLoginToken(final BeaconConsumer<Integer> success, final Runnable failed) {
