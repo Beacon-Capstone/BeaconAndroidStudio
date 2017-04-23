@@ -210,7 +210,7 @@ public class MapFragment extends Fragment implements
         //creatorId is an Integer which is an object, hence the .equals()
         if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
             //make user-made icons different color to help distinguish
-            mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
+            mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
