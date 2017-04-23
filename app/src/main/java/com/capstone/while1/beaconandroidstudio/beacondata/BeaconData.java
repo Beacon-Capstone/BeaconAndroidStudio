@@ -8,6 +8,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 public class BeaconData {
     /*
@@ -191,6 +193,32 @@ public class BeaconData {
 
     public static boolean isLoggedIn() {
         return loginToken != null;
+    }
+
+    public static void isValidUsername(String username, final BeaconConsumer<Boolean> handler) {
+        String query = generateQueryString("username", username);
+        String uri = restAPIDomain + "/api/Users/UsernameIsTaken";
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
+            new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    // Success
+                    try {
+                        boolean usernameIsTaken = response.getBoolean("isTaken");
+                        handler.accept(usernameIsTaken);
+                    } catch (JSONException ex) {
+                        System.err.println(ex);
+                    }
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // Failed
+                    System.err.println(error);
+                }
+            });
     }
 
     public static void retrieveLoginToken(final BeaconConsumer<Integer> success, final Runnable failed) {
@@ -705,6 +733,38 @@ public class BeaconData {
         queue.add(request);
         //code for pulling all new events from database
        // updateAllEvents
+    }
+
+    public static void createUser(String username, String email, String password, final Runnable onSuccess, final BeaconConsumer<String> onFailure) {
+        String queryString = generateQueryString("username", username, "email", email, "password", password);
+        String uri = restAPIDomain + "api/Users/PostUser" + queryString;
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
+        new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                // Success
+                try {
+                    if (response.getBoolean("wasSuccessful")) {
+                        // Done!
+                        onSuccess.run();
+                    } else {
+                        System.err.println(response.getString("message"));
+                        onFailure.accept(response.getString("message"));
+                    }
+                } catch (JSONException ex) {
+                    System.err.println(ex);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // Failed
+                System.err.println(error);
+            }
+        });
+
+        queue.add(request);
     }
 
     // Done - Init
