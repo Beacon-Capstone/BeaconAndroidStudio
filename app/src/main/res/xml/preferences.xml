@@ -1,47 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Event Management">
-        <SwitchPreference
-            android:id="@+id/wifiBool"
-            android:defaultValue="false"
-            android:key="wifiBool"
+        <SwitchPreference android:title="Wifi download only"
             android:summary="This will only download new events over wifi."
-            android:title="Wifi download only" />
+            android:defaultValue="false"
+            android:id="@+id/wifiBool"
+            android:key="wifiBool"/>
         <ListPreference
-            android:id="@+id/eventRadius"
-            android:defaultValue="1"
-            android:entries="@array/radius_headings"
+            android:title="Event Range"
+            android:summary="Select the radius around you in which events will appear."
             android:entryValues="@array/radius_values"
+            android:entries="@array/radius_headings"
             android:key="eventRadius"
-            android:summary="Set the radius around you in which events will appear"
-            android:title="Event Range" />
+            android:id="@+id/eventRadius"
+            android:defaultValue="1"/>
 
         <ListPreference
-            android:id="@+id/eventRefreshInterval"
-            android:defaultValue="5"
+            android:title="Refresh"
+            android:summary="How often should we fetch new events for ya?"
             android:entries="@array/refresh_headings"
             android:entryValues="@array/refresh_intervals"
+            android:id="@+id/eventRefreshInterval"
             android:key="eventRefreshInterval"
-            android:summary="Set how often you want to grab new events"
-            android:title="Refresh" />
+            android:defaultValue="5"/>
 
 
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="Account Management">
-        <EditTextPreference
-            android:key="userEmailAddress"
+        <Preference
+            android:title="Email"
             android:summary="Change your email"
-            android:title="Email" />
+            android:key="userEmailAddress"/>
         <Preference
-            android:key="userPassword"
+            android:title="Password"
             android:summary="Change your password"
-            android:title="Password" />
+            android:key="userPassword"/>
         <Preference
-            android:id="@+id/logout"
+            android:title="Logout"
             android:key="logout"
-            android:title="Logout" />
+            android:id="@+id/logout"/>
     </PreferenceCategory>
 
     <!--<ListPreference-->
