@@ -53,7 +53,7 @@ public class BeaconData {
         return loginFile.exists(); // If it exists, then there is information stored locally for this user...
     }
 
-    private static Integer getCurrentUserId() {
+    public static Integer getCurrentUserId() {
         return currentUserId;
     }
 

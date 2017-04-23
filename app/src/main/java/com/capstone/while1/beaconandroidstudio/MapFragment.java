@@ -207,7 +207,8 @@ public class MapFragment extends Fragment implements
         //Adds marker to map based on latitude and longitude parameters
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        if (event.creatorId == 0) {
+        //creatorId is an Integer which is an object, hence the .equals()
+        if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
