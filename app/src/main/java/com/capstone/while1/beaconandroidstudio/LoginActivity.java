@@ -14,13 +14,6 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // If BeaconData is not initialized, initiate it!
-        // TODO: Add legit lat and lng
-        if (! BeaconData.isInitialized()) {
-            //TODO: Replace with legit lat and lng
-            BeaconData.initiate(this, 1f, 1f);
-        }
-
         // If already logged in, go to the map page immediately
         if (BeaconData.tryToLoadUserInfo(this)) {
             Intent intent = new Intent(this, MainActivity.class);
