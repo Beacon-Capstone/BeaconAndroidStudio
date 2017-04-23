@@ -77,8 +77,8 @@ public class MapFragment extends Fragment implements
     protected boolean mRequestingLocationUpdates;
     private MapView mMapView;
     private GoogleMap googleMap;
-    private boolean upvote;
-    private boolean downvote;
+    private boolean upvote = false;
+    private boolean downvote = false;
 
     public MapFragment() {
         mapFragment = this;
@@ -267,6 +267,8 @@ public class MapFragment extends Fragment implements
 
     private void upvoteDownvoteListener(final ImageButton up, final ImageButton down, final Event event, final TextView popularText)
     {
+        //final int pop = event.voteCount;
+
         if (upvote) {
             up.setColorFilter(Color.GREEN);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
@@ -279,14 +281,19 @@ public class MapFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 //NOT FINISHED, need to implement hasUpVoted method
-                if (BeaconData.haveVotedForEvent(event.id)) {
+                if (!upvote) {
                     up.setColorFilter(Color.GREEN);
                     down.setColorFilter(null);
-                    BeaconData.voteUpOnEvent(event.id);
-                    BeaconData.updateEvent(event);
+                    //BeaconData.voteUpOnEvent(event.id);
+                    //BeaconData.updateEvent(event);
+                    //if they had previously downvoted upvote twice to compensate
+                    if(downvote)
+                        event.voteCount += 2;
+                    else
+                        event.voteCount += 1;
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //upvote = true;
-                    //downvote = false;
+                    upvote = true;
+                    downvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
                     //Send upvote to DB
                     //Retract downvote from DB
@@ -294,10 +301,11 @@ public class MapFragment extends Fragment implements
                 //Upvote is "unvoted"
                 else {
                     up.setColorFilter(null);
-                    BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.updateEvent(event);
+                    //BeaconData.unvoteOnEvent(event.id);
+                    //BeaconData.updateEvent(event);
+                    event.voteCount -= 1;
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //upvote = false;
+                    upvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                     //retract upvote from DB
                 }
@@ -308,14 +316,20 @@ public class MapFragment extends Fragment implements
         down.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int pop = event.voteCount;
                 if (!downvote) {
                     down.setColorFilter(Color.RED);
                     up.setColorFilter(null);
-                    BeaconData.voteDownOnEvent(event.id);
-                    BeaconData.updateEvent(event);
+                   // BeaconData.voteDownOnEvent(event.id);
+                    //If they directly previously downvoted, upvote twice to compensate
+                    if(upvote)
+                        event.voteCount -= 2;
+                    else
+                        event.voteCount -= 1;
+                    //BeaconData.updateEvent(event);
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //downvote = true;
-                    //upvote = false;
+                    downvote = true;
+                    upvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
                     //Send downvote to DB
                     //Retract upvote from DB
@@ -323,10 +337,11 @@ public class MapFragment extends Fragment implements
                 //Downvote is "unvoted"
                 else {
                     down.setColorFilter(null);
-                    BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.updateEvent(event);
+                    //BeaconData.unvoteOnEvent(event.id);
+                    //BeaconData.updateEvent(event);
+                    event.voteCount += 1;
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //downvote = false;
+                    downvote = false;
                     //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
                     //Retract downvote from DB
                 }
@@ -397,8 +412,8 @@ public class MapFragment extends Fragment implements
                 startLocationUpdates();
             }
         }
-//        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
-//        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
+        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
+        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
         ArrayList<Event> events = BeaconData.getEvents();
         if (events != null) {
             for (Event event : events) {
