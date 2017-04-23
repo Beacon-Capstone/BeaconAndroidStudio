@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.capstone.while1.beaconandroidstudio.beacondata.*;
+import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText userInput = (EditText) findViewById(R.id.loginUserInput);
         EditText passInput = (EditText) findViewById(R.id.loginPassInput);
 
-        if (userInput == null || passInput == null) {
+        if (/*userInput == null || passInput == null*/ false) {
             Log.d("BeaconAndroidStudio", "userInput or passInput is null");
         } else {
             final String username = userInput.getText().toString();
@@ -50,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
                             BeaconData.registerLogin(LoginActivity.this, username, password);
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             LoginActivity.this.startActivity(intent);
+                            LoginActivity.this.finish();
                         }
                     },
                     new Runnable() {

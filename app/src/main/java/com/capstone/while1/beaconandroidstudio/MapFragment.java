@@ -3,16 +3,11 @@ package com.capstone.while1.beaconandroidstudio;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-
-import android.app.Dialog;
-import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
-import android.location.LocationManager;
-
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -46,14 +41,20 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import static android.content.Context.MODE_PRIVATE;
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.RED;
+import static com.capstone.while1.beaconandroidstudio.R.id;
+import static com.capstone.while1.beaconandroidstudio.R.layout;
+import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -64,8 +65,8 @@ public class MapFragment extends Fragment implements
         OnConnectionFailedListener,
         LocationListener, OnMyLocationButtonClickListener {
 
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 5000;
           
     protected static final String TAG = "MainActivity";
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
@@ -79,6 +80,7 @@ public class MapFragment extends Fragment implements
     private GoogleMap googleMap;
     private boolean upvote;
     private boolean downvote;
+    private Circle userCircle;
 
     public MapFragment() {
         mapFragment = this;
@@ -87,8 +89,8 @@ public class MapFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.location_fragment, container, false);
-        mMapView = (MapView) rootView.findViewById(R.id.mapView);
+        View rootView = inflater.inflate(layout.location_fragment, container, false);
+        mMapView = (MapView) rootView.findViewById(id.mapView);
         mMapView.onCreate(savedInstanceState);
 
         mRequestingLocationUpdates = true;
@@ -116,6 +118,11 @@ public class MapFragment extends Fragment implements
                 } else {
                     googleMap = mMap;
                     googleMap.setMyLocationEnabled(true);
+                    googleMap.setMinZoomPreference(9);
+                    googleMap.setMaxZoomPreference(17);
+                    googleMap.getUiSettings().setCompassEnabled(false);
+                    googleMap.getUiSettings().setRotateGesturesEnabled(false);
+                    googleMap.getUiSettings().setZoomControlsEnabled(true);
                 }
             }
         });
@@ -138,9 +145,9 @@ public class MapFragment extends Fragment implements
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
+        mLocationRequest.setPriority(PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     protected void buildLocationSettingsRequest() {
@@ -198,7 +205,8 @@ public class MapFragment extends Fragment implements
     private void updateMap(Location location) {
         if (location != null) {
             LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15), 1500, null);
+            newUserCircle();
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14), 1500, null);
         }
     }
 
@@ -268,11 +276,11 @@ public class MapFragment extends Fragment implements
     private void upvoteDownvoteListener(final ImageButton up, final ImageButton down, final Event event, final TextView popularText)
     {
         if (upvote) {
-            up.setColorFilter(Color.GREEN);
+            up.setColorFilter(GREEN);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
         }
         if (downvote) {
-            down.setColorFilter(Color.RED);
+            down.setColorFilter(RED);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
         }
         up.setOnClickListener(new View.OnClickListener() {
@@ -309,7 +317,7 @@ public class MapFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 if (!downvote) {
-                    down.setColorFilter(Color.RED);
+                    down.setColorFilter(RED);
                     up.setColorFilter(null);
                     BeaconData.voteDownOnEvent(event.id);
                     BeaconData.updateEvent(event);
@@ -361,7 +369,6 @@ public class MapFragment extends Fragment implements
                     .newInstance(true).show(getFragmentManager(), "dialog");
         }
         updateMap(mCurrentLocation);
-
     }
 
     @Override
@@ -418,7 +425,7 @@ public class MapFragment extends Fragment implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        updateMap(mCurrentLocation);
+        newUserCircle();
     }
 
     @Override
@@ -442,5 +449,25 @@ public class MapFragment extends Fragment implements
 
     public Location getCurrentLocation() {
         return this.mCurrentLocation;
+    }
+
+    public double milesToMeters(double miles) {
+        return miles * 1609.34;
+    }
+
+    public void newUserCircle() {
+        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
+        if (isUserCircleVisible())
+            userCircle.remove();
+        CircleOptions options = new CircleOptions()
+                .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                .radius(milesToMeters(30))
+                .fillColor(0x309392F2)
+                .strokeWidth(0);
+        this.userCircle = googleMap.addCircle(options);
+    }
+
+    public boolean isUserCircleVisible() {
+        return (this.userCircle != null);
     }
 }

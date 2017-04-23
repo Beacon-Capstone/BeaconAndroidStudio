@@ -7,12 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.location.Location;
-import android.os.Bundle;
-import android.os.Handler;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,7 +25,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-
 import android.widget.TextView;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
@@ -58,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.onAddEvent(view);
             }
         });
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }

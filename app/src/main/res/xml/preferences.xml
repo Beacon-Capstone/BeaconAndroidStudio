@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Event Management">
-        <SwitchPreference android:title="Wifi download only"
-            android:summary="This will only download new events over wifi."
-            android:defaultValue="false"
+        <SwitchPreference
             android:id="@+id/wifiBool"
-            android:key="wifiBool"/>
+            android:defaultValue="false"
+            android:key="wifiBool"
+            android:summary="This will only download new events over wifi."
+            android:title="Wifi download only" />
         <ListPreference
-            android:title="Event Range"
-            android:summary="Select the radius around you in which events will appear."
-            android:entryValues="@array/radius_values"
-            android:entries="@array/radius_headings"
-            android:key="eventRadius"
             android:id="@+id/eventRadius"
-            android:defaultValue="1"/>
+            android:defaultValue="1"
+            android:entries="@array/radius_headings"
+            android:entryValues="@array/radius_values"
+            android:key="eventRadius"
+            android:summary="Set the radius around you in which events will appear"
+            android:title="Event Range" />
 
         <ListPreference
-            android:title="Refresh"
-            android:summary="How often should we fetch new events for ya?"
+            android:id="@+id/eventRefreshInterval"
+            android:defaultValue="5"
             android:entries="@array/refresh_headings"
             android:entryValues="@array/refresh_intervals"
-            android:id="@+id/eventRefreshInterval"
             android:key="eventRefreshInterval"
-            android:defaultValue="5"/>
+            android:summary="Set how often you want to grab new events"
+            android:title="Refresh" />
 
 
     </PreferenceCategory>
@@ -30,17 +31,17 @@
     <PreferenceCategory
         android:title="Account Management">
         <EditTextPreference
-            android:title="Email"
+            android:key="userEmailAddress"
             android:summary="Change your email"
-            android:key="userEmailAddress"/>
+            android:title="Email" />
         <Preference
-            android:title="Password"
+            android:key="userPassword"
             android:summary="Change your password"
-            android:key="userPassword"/>
+            android:title="Password" />
         <Preference
-            android:title="Logout"
+            android:id="@+id/logout"
             android:key="logout"
-            android:id="@+id/logout"/>
+            android:title="Logout" />
     </PreferenceCategory>
 
     <!--<ListPreference-->
