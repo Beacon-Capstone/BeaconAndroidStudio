@@ -1,19 +1,15 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
-import com.google.gson.JsonObject;
-
-import org.json.JSONException;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -29,6 +25,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     public void register(View v) {
+        Log.d("Start Register", (new Long(System.currentTimeMillis()).toString()));
         EditText userInput = (EditText) findViewById(R.id.usernameInput);
         EditText emailInput = (EditText) findViewById(R.id.emailInput);
         EditText passInput = (EditText) findViewById(R.id.passwordInput);
@@ -63,7 +60,9 @@ public class RegisterActivity extends AppCompatActivity {
                                     public void run() {
                                         BeaconData.registerLogin(currentContext, username, password);
                                         Intent intent = new Intent(currentContext, MainActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         currentContext.startActivity(intent);
+                                        RegisterActivity.this.finish();
                                     }
                                 },
                                 new BeaconConsumer<String>() {
@@ -84,10 +83,5 @@ public class RegisterActivity extends AppCompatActivity {
             // Create the user!
 
         }
-    }
-
-    public void goToLoginPage(View v) {
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
     }
 }

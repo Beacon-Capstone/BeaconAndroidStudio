@@ -89,6 +89,7 @@ public class MapFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d("Stop Register", (new Long(System.currentTimeMillis()).toString()));
         View rootView = inflater.inflate(layout.location_fragment, container, false);
         mMapView = (MapView) rootView.findViewById(id.mapView);
         mMapView.onCreate(savedInstanceState);

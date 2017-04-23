@@ -48,7 +48,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    private static Boolean userHasLocallySavedLoginInformation(Context context) {
+    public static Boolean userHasLocallySavedLoginInformation(Context context) {
         File loginFile = new File(context.getFilesDir(), CREDENTIALS_FILE_NAME);
         return loginFile.exists(); // If it exists, then there is information stored locally for this user...
     }

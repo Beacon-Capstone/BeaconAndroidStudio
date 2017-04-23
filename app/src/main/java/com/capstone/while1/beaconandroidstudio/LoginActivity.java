@@ -49,7 +49,9 @@ public class LoginActivity extends AppCompatActivity {
                             // Success!
                             BeaconData.registerLogin(LoginActivity.this, username, password);
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             LoginActivity.this.startActivity(intent);
+
                             LoginActivity.this.finish();
                         }
                     },
