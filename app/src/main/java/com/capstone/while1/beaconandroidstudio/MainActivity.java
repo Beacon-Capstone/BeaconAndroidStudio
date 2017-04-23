@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.onAddEvent(view);
             }
         });
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-        }
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     public void debugPrint(String message) {
