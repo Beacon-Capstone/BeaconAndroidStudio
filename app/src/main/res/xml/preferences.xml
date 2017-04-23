@@ -30,10 +30,6 @@
     <PreferenceCategory
         android:title="Account Management">
         <EditTextPreference
-            android:title="Username"
-            android:summary="Change your username"
-            android:key="username"/>
-        <EditTextPreference
             android:title="Email"
             android:summary="Change your email"
             android:key="userEmailAddress"/>
