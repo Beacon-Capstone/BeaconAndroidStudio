@@ -97,7 +97,31 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    EDGE CASE:
+    What happens if the user clicks the register or login links while waiting for a response from the database?
+    If this happens when the API server is running, what happens?
+
+    When the API server isn't running, loading spinner keeps going. Switching to the register page and then coming back to login
+    actually stops the spinner, but not because the process is killed.
+
+    If you hit the back button on the android phone, it goes back to the exact instance/process with the spinner still spinning
+    and assumingly the api call still going.
+
+
+    EDGE CASE FIX:
+    A 'gross' fix for this would be to finish() the activity before switching views,
+    but this makes it so that you can't hit the back button to go back to login from the register view or vice versa.
+    Then again... how often would users do this? When they go to register they don't need to go back to login quickly because
+    they're registering and it logs in for them right after. And if they really need to navigate between login and register views,
+    they can just use the links. This fix may prevent using the back button but at least there's no rogue activities running in the
+    background wasting computing power.
+
+    I did this fix for both views.
+     */
+    //goToLoginPage() is similar
     public void goToRegisterPage(View v) {
+        this.finish();
         startActivity(new Intent(this, RegisterActivity.class));
     }
 }
