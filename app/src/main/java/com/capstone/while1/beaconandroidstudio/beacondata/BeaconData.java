@@ -737,7 +737,7 @@ public class BeaconData {
 
     public static void createUser(String username, String email, String password, final Runnable onSuccess, final BeaconConsumer<String> onFailure) {
         String queryString = generateQueryString("username", username, "email", email, "password", password);
-        String uri = restAPIDomain + "api/Users/PostUser" + queryString;
+        String uri = restAPIDomain + "/api/Users/PostUser" + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
         new Response.Listener<JSONObject>() {
