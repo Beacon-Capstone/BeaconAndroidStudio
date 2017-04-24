@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
 import com.capstone.while1.beaconandroidstudio.beacondata.Event;
+import com.capstone.while1.beaconandroidstudio.beacondata.Voted;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -256,7 +257,7 @@ public class MapFragment extends Fragment implements
 
 
                     //change color of marker to green to let user know they've already looked at it
-                    mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    //mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     final ImageButton up = (ImageButton) dialog.findViewById(R.id.upVoteBtn);
                     final ImageButton down = (ImageButton) dialog.findViewById(R.id.downVoteBtn);
                     final ImageButton closeBtn = (ImageButton) dialog.findViewById(R.id.closeBtn);
@@ -265,7 +266,7 @@ public class MapFragment extends Fragment implements
                     //User has clicked the "upvote button"
                     MapFragment.this.upvoteDownvoteListener(up, down, eve, creatorPopularityTextView);
 
-                    //User clicked "cancel button"
+                    //User clicked "close button"
                     closeBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -282,29 +283,28 @@ public class MapFragment extends Fragment implements
 
     private void upvoteDownvoteListener(final ImageButton up, final ImageButton down, final Event event, final TextView popularText)
     {
-        if (upvote) {
+        if (BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR) {
             up.setColorFilter(GREEN);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
         }
-        if (downvote) {
+        if (BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST) {
             down.setColorFilter(RED);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
         }
+        //User clicks on upvote
         up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //NOT FINISHED, need to implement hasUpVoted method
-                if (BeaconData.haveVotedForEvent(event.id)) {
+                //if User has not upvoted
+                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)) {
                     up.setColorFilter(Color.GREEN);
                     down.setColorFilter(null);
+                    //If user previously downvoted, remove downvote
+                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)
+                        BeaconData.unvoteOnEvent(event.id);
                     BeaconData.voteUpOnEvent(event.id);
                     BeaconData.updateEvent(event);
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //upvote = true;
-                    //downvote = false;
-                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
-                    //Send upvote to DB
-                    //Retract downvote from DB
                 }
                 //Upvote is "unvoted"
                 else {
@@ -312,9 +312,6 @@ public class MapFragment extends Fragment implements
                     BeaconData.unvoteOnEvent(event.id);
                     BeaconData.updateEvent(event);
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //upvote = false;
-                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                    //retract upvote from DB
                 }
             }
         });
@@ -323,27 +320,26 @@ public class MapFragment extends Fragment implements
         down.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!downvote) {
+                //If user has not downvoted
+                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)) {
                     down.setColorFilter(RED);
                     up.setColorFilter(null);
+                    //If user previously upvoted, remove vote
+                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)
+                        BeaconData.unvoteOnEvent(event.id);
                     BeaconData.voteDownOnEvent(event.id);
                     BeaconData.updateEvent(event);
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //downvote = true;
-                    //upvote = false;
-                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
-                    //Send downvote to DB
-                    //Retract upvote from DB
                 }
+
+                //User previously upvoted
+
                 //Downvote is "unvoted"
                 else {
                     down.setColorFilter(null);
                     BeaconData.unvoteOnEvent(event.id);
                     BeaconData.updateEvent(event);
                     popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-                    //downvote = false;
-                    //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity));
-                    //Retract downvote from DB
                 }
             }
         });
