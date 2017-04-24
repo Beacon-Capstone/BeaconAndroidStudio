@@ -11,6 +11,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -285,64 +286,263 @@ public class MapFragment extends Fragment implements
     {
         if (BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR) {
             up.setColorFilter(GREEN);
+            down.setColorFilter(null);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity + 1));
         }
         if (BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST) {
+            up.setColorFilter(null);
             down.setColorFilter(RED);
             //text2.setText("Created By: " + creator + "\nPopularity: " + (popularity - 1));
         }
-        //User clicks on upvote
+
+        // Basic algorithm
+        // For up clicked
+        // If voted on this event, then unvote and uncolor both buttons
+        // Vote for up
+
+
         up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if User has not upvoted
-                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)) {
-                    up.setColorFilter(Color.GREEN);
-                    down.setColorFilter(null);
-                    //If user previously downvoted, remove downvote
-                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)
-                        BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.voteUpOnEvent(event.id);
-                    BeaconData.updateEvent(event);
-                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                final boolean haveVotedForThisEvent = BeaconData.haveVotedForEvent(event.id);
+
+                if (haveVotedForThisEvent) {
+                    final boolean haveUpvotedEvent = BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR;
+                    Log.i("up.click", "Already voted?: " + haveUpvotedEvent);
+
+                    // If voted on this event, then unvote and uncolor both buttons
+                    BeaconData.unvoteOnEvent(event.id,
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    // On Success
+                                    up.setColorFilter(null);
+                                    down.setColorFilter(null);
+
+                                    // Get the vote count
+                                    Event e = BeaconData.getEvent(event.id);
+                                    final Integer popularityCount = e.voteCount;
+                                    popularText.setText(String.format("Popularity: %d", e.voteCount));
+
+                                    if (! haveUpvotedEvent) {// Vote for event
+                                        BeaconData.voteUpOnEvent(event.id,
+                                                new BeaconConsumer<Integer>() {
+                                                    @Override
+                                                    public void accept(Integer currentEventVoteCount) {
+                                                        // Successfully voted up on the event
+                                                        up.setColorFilter(GREEN);
+                                                        down.setColorFilter(null);
+                                                        popularText.setText("Popularity: " + currentEventVoteCount);
+                                                    }
+                                                },
+                                                new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Log.e("upvote.click", "Failed to upvote after unvote.");
+                                                    }
+                                                });
+                                    }
+
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.e("upvote.click", "Failed to unvote event.");
+                                }
+                            }
+                    );
                 }
-                //Upvote is "unvoted"
                 else {
-                    up.setColorFilter(null);
-                    BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.updateEvent(event);
-                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    // Just upvote for the event
+                    BeaconData.voteUpOnEvent(event.id,
+                            new BeaconConsumer<Integer>() {
+                                @Override
+                                public void accept(Integer currentEventVoteCount) {
+                                    // Successfully voted up on the event
+                                    up.setColorFilter(Color.GREEN);
+                                    down.setColorFilter(null);
+                                    popularText.setText("Popularity: " + currentEventVoteCount);
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.e("upvote.click", "Failed to upvote...");
+                                }
+                            });
                 }
             }
         });
 
-        //User clicked "downvote button"
         down.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //If user has not downvoted
-                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)) {
-                    down.setColorFilter(RED);
-                    up.setColorFilter(null);
-                    //If user previously upvoted, remove vote
-                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)
-                        BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.voteDownOnEvent(event.id);
-                    BeaconData.updateEvent(event);
-                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                final boolean haveVotedForThisEvent = BeaconData.haveVotedForEvent(event.id);
+
+                if (haveVotedForThisEvent) {
+                    final boolean haveDownvotedEvent = BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST;
+
+                    // If voted on this event, then unvote and uncolor both buttons
+                    BeaconData.unvoteOnEvent(event.id,
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    // On Success
+                                    up.setColorFilter(null);
+                                    down.setColorFilter(null);
+
+                                    Event e = BeaconData.getEvent(event.id);
+                                    popularText.setText("Popularity: " + e.voteCount);
+
+                                    if (! haveDownvotedEvent) {
+                                        // Downvote the event
+                                        BeaconData.voteDownOnEvent(event.id,
+                                                new BeaconConsumer<Integer>() {
+                                                    @Override
+                                                    public void accept(Integer currentEventVoteCount) {
+                                                        // Successfully voted up on the event
+                                                        up.setColorFilter(null);
+                                                        down.setColorFilter(RED);
+                                                        popularText.setText("Popularity: " + currentEventVoteCount);
+                                                    }
+                                                },
+                                                new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Log.e("downvote.click", "Failed to downvote after unvote.");
+                                                    }
+                                                });
+                                    }
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.e("downvote.click", "Failed to unvote event.");
+                                }
+                            }
+                    );
                 }
-
-                //User previously upvoted
-
-                //Downvote is "unvoted"
                 else {
-                    down.setColorFilter(null);
-                    BeaconData.unvoteOnEvent(event.id);
-                    BeaconData.updateEvent(event);
-                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    // Just upvote for the event
+                    BeaconData.voteDownOnEvent(event.id,
+                            new BeaconConsumer<Integer>() {
+                                @Override
+                                public void accept(Integer currentEventVoteCount) {
+                                    // Successfully voted up on the event
+                                    up.setColorFilter(null);
+                                    down.setColorFilter(RED);
+                                    popularText.setText("Popularity: " + currentEventVoteCount);
+                                }
+                            },
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.e("downvote.click", "Failed to downvote...");
+                                }
+                            });
                 }
             }
         });
+
+        // For down clicked
+        // If voted on this event, then unvote and uncolor both buttons
+        // Vote for down
+
+        //User clicks on upvote
+//        up.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // User has not voted yet, so vote up!
+//                if ((BeaconData.getVoteDecisionForEvent(event.id) != Voted.FOR)) {
+//
+//                    ///////////////////////////////////////////////
+//                    //If user previously downvoted, remove downvote
+//
+//                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)
+//                        BeaconData.unvoteOnEvent(event.id,
+//                                new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        // Success!
+//
+//                                        // Update UI
+//                                        up.setColorFilter(null);
+//                                        down.setColorFilter(null);
+//
+//                                        // Now upvote
+//                                        BeaconData.voteUpOnEvent(event.id,
+//                                        new Runnable() {
+//                                            @Override
+//                                            public void run() {
+//                                                // Successfully voted up on an event
+//                                                // Color accordingly
+//
+//                                                // Update popularity text
+//                                                up.setColorFilter(Color.GREEN);
+//                                                down.setColorFilter(null);
+//                                                popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+//
+//                                            }
+//                                        },
+//                                                new Runnable() {
+//                                                    @Override
+//                                                    public void run() {
+//                                                        // Failed to vote up on the event
+//                                                        // Do nothing...
+//                                                    }
+//                                                });
+//                                    }
+//                                },
+//                                new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        // Failed!
+//                                        // Do nothing
+//                                    }
+//                                });
+//
+//                }
+//                //Upvote is "unvoted"
+//                else if (BeaconData.getVoteDecisionForEvent(event.id)) {
+//                    // Unvote only!
+//
+//                    up.setColorFilter(null);
+//                    BeaconData.unvoteOnEvent(event.id);
+//                    BeaconData.updateEvent(event);
+//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+//                }
+//            }
+//        });
+
+        //User clicked "downvote button"
+//        down.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                //If user has not downvoted
+//                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)) {
+//                    down.setColorFilter(RED);
+//                    up.setColorFilter(null);
+//                    //If user previously upvoted, remove vote
+//                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)
+//                        BeaconData.unvoteOnEvent(event.id);
+//                    BeaconData.voteDownOnEvent(event.id);
+//                    BeaconData.updateEvent(event);
+//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+//                }
+//
+//                //User previously upvoted
+//
+//                //Downvote is "unvoted"
+//                else {
+//                    down.setColorFilter(null);
+//                    BeaconData.unvoteOnEvent(event.id);
+//                    BeaconData.updateEvent(event);
+//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -429,7 +629,9 @@ public class MapFragment extends Fragment implements
                 ArrayList<Event> events = BeaconData.getEvents();
                 if (events != null) {
                     for (int i = 0; i < events.size(); ++i) {
-                        createMarker(events.get(i));
+                        if (! events.get(i).deleted) {
+                            createMarker(events.get(i));
+                        }
                     }
                 }
             }

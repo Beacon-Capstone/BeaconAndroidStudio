@@ -6,6 +6,7 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -32,7 +33,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://e04d10cf.ngrok.io";
+    private static String restAPIDomain = "http://113f6345.ngrok.io";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
@@ -56,6 +57,26 @@ public class BeaconData {
 
     public static Integer getCurrentUserId() {
         return currentUserId;
+    }
+
+    public static Vote getVote(int eventId) {
+        int index = getVoteIndex(eventId);
+
+        if (index == -1) {
+            return null;
+        }
+
+        return eventsVotedFor.get(index);
+    }
+
+    public static int getVoteIndex(int eventId) {
+        for (int i = 0; i < eventsVotedFor.size(); ++i) {
+            if (eventsVotedFor.get(i).eventId == eventId) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     // Done - Tested
@@ -782,23 +803,25 @@ public class BeaconData {
             @Override
             public void onResponse(JSONObject response) {
                 // Success
+                Log.i("createUser", "Received response from the server.");
                 try {
                     if (response.getBoolean("wasSuccessful")) {
                         // Done!
+                        Log.i("createUser", "Successfully created new user!");
                         onSuccess.run();
                     } else {
-                        System.err.println(response.getString("message"));
+                        Log.e("createUser", response.getString("message"));
                         onFailure.accept(response.getString("message"));
                     }
                 } catch (JSONException ex) {
-                    System.err.println(ex);
+                    Log.e("createUser", ex.toString());
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 // Failed
-                System.err.println(error);
+                Log.e("createUser", error.toString());
             }
         });
 
@@ -806,42 +829,49 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void voteUpOnEvent(final int id) {
-        if (!haveVotedForEvent(id)) {
-            System.err.println("Already voted for this event...");
+    public static void voteUpOnEvent(final int id, final BeaconConsumer<Integer> onSuccess, final Runnable onFailure) {
+        if (haveVotedForEvent(id)) {
+            Log.e("voteUpOnEvent", "Already voted for this event...");
             return;
         }
 
         String queryString = generateQueryString("token", loginToken);
         String uri = restAPIDomain + "/api/Events/uv/" + id + queryString;
 
+        Log.i("voteUpOnEvent", "Initiating voteUp on event.");
+
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jobj) {
                         try {
+                            Log.i("voteUpOnEvent", "Response received from server.");
                             if (jobj.getBoolean("wasSuccessful")) {
-                                Vote newVote = new Vote();
-                                JSONObject vote = jobj.getJSONObject("vote");
-                                newVote.eventId = jobj.getInt("eventId");
-                                newVote.numVotes = jobj.getInt("numVotes");
-
-                                eventsVotedFor.add(newVote);
+                                Log.i("voteUpOnEvent", "Response deemed successful");
+                                Vote cVote = new Vote();
+                                cVote.eventId = jobj.getInt("eventVotedFor");
+                                cVote.numVotes = jobj.getInt("numVotes");
+                                int eventVoteCount = jobj.getInt("numVotesOnEvent");
+                                eventsVotedFor.add(cVote);
                                 Event event = getEvent(id);
                                 assert event != null;
-                                event.voteCount++;
+                                event.voteCount = eventVoteCount;
+                                onSuccess.accept(eventVoteCount);
                             } else {
-                                System.err.println(jobj.getString("Message"));
+                                Log.e("voteUpOnEvent", jobj.getString("message"));
+                                onFailure.run();
                             }
                         } catch (JSONException ex) {
-                            System.err.println(ex);
+                            Log.e("voteUpOnEvent", ex.toString());
+                            onFailure.run();
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.err.println(error);
+                        Log.e("voteUpOnEvent", error.toString());
+                        onFailure.run();
                     }
                 });
 
@@ -849,9 +879,9 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void voteDownOnEvent(final Integer id) {
-        if (haveVotedForEvent(id) == false) {
-            System.err.println("Already voted for this event...");
+    public static void voteDownOnEvent(final Integer id, final BeaconConsumer<Integer> onSuccess, final Runnable onFailed) {
+        if (haveVotedForEvent(id)) {
+            Log.e("voteDownOnEvent", "Already voted for this event...");
             return;
         }
 
@@ -865,17 +895,21 @@ public class BeaconData {
                         try {
                             if (jobj.getBoolean("wasSuccessful")) {
                                 Vote cVote = new Vote();
-                                cVote.eventId = jobj.getJSONObject("vote").getInt("eventId");
-                                cVote.numVotes = jobj.getJSONObject("vote").getInt("numVotes");
+                                cVote.eventId = jobj.getInt("eventVotedFor");
+                                cVote.numVotes = jobj.getInt("numVotes");
+                                int eventVoteCount = jobj.getInt("numVotesOnEvent");
                                 eventsVotedFor.add(cVote);
                                 Event event = getEvent(id);
                                 assert event != null;
-                                event.voteCount--;
+                                event.voteCount = eventVoteCount;
+                                onSuccess.accept(eventVoteCount);
                             } else {
-                                System.err.println(jobj.getString("Message"));
+                                Log.e("voteDownOnEvent", jobj.getString("message"));
+                                onFailed.run();
                             }
                         } catch (JSONException ex) {
                             Log.e("voteDownOnEvent", ex.toString());
+                            onFailed.run();
                         }
                     }
                 },
@@ -883,6 +917,7 @@ public class BeaconData {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e("voteDownOnEvent", error.toString());
+                        onFailed.run();
                     }
                 });
 
@@ -890,7 +925,7 @@ public class BeaconData {
     }
 
     // Done - Init
-    public static void unvoteOnEvent(final int id) {
+    public static void unvoteOnEvent(final int id, final Runnable onSuccess, final Runnable onFailed) {
         // Make sure that the event was voted for...
         if (!haveVotedForEvent(id)) {
             System.err.println("Can't remove a vote for an event that you never voted for...");
@@ -906,37 +941,44 @@ public class BeaconData {
                     public void onResponse(JSONObject jobj) {
                         try {
                             if (jobj.getBoolean("wasSuccessful")) {
-                                JSONArray votes = jobj.getJSONArray("votes");
-                                int numVotes = 0;
+                                // Can be positive or negative...
+                                int voteValueRemoved = jobj.getInt("voteValueRemoved");
+
                                 // Remove vote locally (value from Event)
-                                for (int i = 0; i < votes.length(); ++i) {
-                                    if (votes.getJSONObject(i).getInt("EventId") == id) {
-                                        numVotes = votes.getJSONObject(i).getInt("NumVotes");
-                                    }
-                                }
+                                Event e = getEvent(id);
+                                e.voteCount -= voteValueRemoved;
 
                                 // Remove vote itself
-                                for (int i = 0; i < eventsVotedFor.size(); ++i) {
-                                    if (eventsVotedFor.get(i).eventId == id) {
-                                        eventsVotedFor.remove(i);
-                                        Event event = getEvent(id);
-                                        event.voteCount -= numVotes;
-                                    }
+                                int voteIndex = getVoteIndex(id);
+
+                                if (voteIndex != -1) {
+                                    eventsVotedFor.remove(voteIndex);
                                 }
+                                else {
+                                    Log.w("unvoteOnEvent", "Tried to remove Vote that doesn't exist.");
+                                }
+
+                                // Done!
+                                onSuccess.run();
                             } else {
-                                System.err.println(jobj.getString("Message"));
+                                Log.e("unvoteOnEvent", jobj.getString("message"));
+                                onFailed.run();
                             }
                         } catch (JSONException ex) {
-                            System.err.println(ex);
+                            Log.e("unvoteOnEvent", ex.toString());
+                            onFailed.run();
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.err.println(error);
+                        Log.e("unvoteOnEvent", error.toString());
+                        onFailed.run();
                     }
                 });
+
+        queue.add(request);
     }
 
     // Done - Init
@@ -949,6 +991,7 @@ public class BeaconData {
                     @Override
                     public void onResponse(JSONObject jobj) {
                         Log.i("getEventsVotedFor", "Server response received");
+                        Log.i("getEventsVotedFor", jobj.toString());
                         try {
                             if (eventsVotedFor == null) {
                                 eventsVotedFor = new ArrayList<>();
