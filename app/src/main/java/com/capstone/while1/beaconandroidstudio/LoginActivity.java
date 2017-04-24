@@ -46,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void run() {
                             Log.e("Login", "Failed to login.");
                         }
-                    });
+                    }, this);
         }
 
         // Else, request a login
@@ -60,7 +60,9 @@ public class LoginActivity extends AppCompatActivity {
         MainActivity.closeKeyboard(this);
 
         final String username = ((EditText)findViewById(R.id.loginUserInput)).getText().toString();
+        Log.e("username", username);
         final String password = ((EditText)findViewById(R.id.loginPassInput)).getText().toString();
+        Log.e("password", password);
         final TextView messageOutput = (TextView) LoginActivity.this.findViewById(R.id.messageOutput);
         messageOutput.setText(""); //whether or not there was an error in previous method call, clear it when login button clicked
 
@@ -73,6 +75,8 @@ public class LoginActivity extends AppCompatActivity {
             registerLink.setClickable(false); //User should not be able to go to register at this time
             final ProgressBar loginSpinner = (ProgressBar) findViewById(R.id.loginSpinner);
             loginSpinner.setVisibility(View.VISIBLE);
+
+            final LoginActivity loginActivity = this;
 
             /*if this runs forever user can't click button again unless they restart the app,
             or they could switch to register view and then back to login (which basically loads a brand new instance of the view)
@@ -106,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
                                             // Failed to grab token
                                             Log.e("Network Error", "Failed to grab the token!");
                                         }
-                                    });
+                                    }, loginActivity);
                         }
                     },
                     new Runnable() {

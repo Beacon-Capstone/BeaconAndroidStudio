@@ -7,6 +7,5 @@
         compat:showAsAction="always" />
     <item
         android:id="@+id/open_list_view"
-        android:icon="@drawable/googleg_standard_color_18"
-        android:onClick="" />
+        android:icon="@drawable/googleg_standard_color_18"/>
 </menu>

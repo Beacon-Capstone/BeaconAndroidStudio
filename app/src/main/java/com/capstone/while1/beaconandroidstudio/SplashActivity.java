@@ -47,7 +47,7 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
                             public void run() {
                                 System.err.println("Failed to login...");
                             }
-                        });
+                        }, this);
             }
             return MainActivity.class;
         }

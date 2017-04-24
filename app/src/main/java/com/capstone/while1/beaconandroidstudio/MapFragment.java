@@ -1,6 +1,7 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -170,6 +171,8 @@ public class MapFragment extends Fragment implements
             BeaconData.initiateQueue(getContext());
         }
 
+        Activity mapFragment = getActivity();
+
         BeaconData.retrieveLoginToken(
                 new BeaconConsumer<Integer>() {
                     @Override
@@ -211,7 +214,7 @@ public class MapFragment extends Fragment implements
                     public void run() {
                         Log.e("retrieveLoginToken", "Failed to login");
                     }
-                }
+                }, mapFragment
         );
 
         BeaconData.setOnInitialized(new Runnable() {

@@ -32,7 +32,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://95c97732.ngrok.io";
+    private static String restAPIDomain = "http://e04d10cf.ngrok.io";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
@@ -222,7 +222,7 @@ public class BeaconData {
         queue.add(request);
     }
 
-    public static void retrieveLoginToken(final BeaconConsumer<Integer> success, final Runnable failed) {
+    public static void retrieveLoginToken(final BeaconConsumer<Integer> success, final Runnable failed, Context context) {
          login(new BeaconConsumer2<String, Integer>() {
                    @Override
                    public void accept(String token, Integer userId) {
@@ -236,7 +236,7 @@ public class BeaconData {
                          System.err.println(err);
                          failed.run();
                      }
-                 });
+                 }, context);
     }
 
     public static void syncVotesForEvents(final Runnable success, final Runnable failed) {
@@ -342,8 +342,11 @@ public class BeaconData {
     }
 
     // Done - Init
-    private static void login(BeaconConsumer2<String, Integer> onSuccess, BeaconConsumer<String> onFailure) {
-        login(username, password, onSuccess, onFailure);
+    private static void login(BeaconConsumer2<String, Integer> onSuccess, BeaconConsumer<String> onFailure, Context context) {
+        if (tryToLoadUserInfo(context))
+            login(username, password, onSuccess, onFailure);
+        else
+            Log.e("tryToLoadUserInfo", "did it work");
     }
 
     // Done - Init
@@ -351,6 +354,8 @@ public class BeaconData {
         BeaconData.username = username;
         BeaconData.password = password;
         String queryString = generateQueryString("username", username, "password", password);
+        Log.d("username", username);
+        Log.d("password", password);
         String uri = restAPIDomain + "/api/Authenticator/Token" + queryString;
 
         JsonObjectRequest tokenRequest = new JsonObjectRequest(Request.Method.GET, uri, null,
