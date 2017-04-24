@@ -38,7 +38,9 @@ public class LoginActivity extends AppCompatActivity {
                          public void accept(Integer obj) {
                              Log.e("here 2", "2");
                              Intent intent = new Intent(activity, MainActivity.class);
+                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                              startActivity(intent);
+                             finish();
                          }
                     },
                     new Runnable() {

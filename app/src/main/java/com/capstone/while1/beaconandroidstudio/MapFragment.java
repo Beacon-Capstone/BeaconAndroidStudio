@@ -132,104 +132,6 @@ public class MapFragment extends Fragment implements
             }
         });
 
-        ////////////////////////////
-        // Initiate BeaconData Class
-
-        BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
-            @Override
-            public void accept(ArrayList<Event> updatedEvents) {
-                Log.i("Events Updated", "Starting to process update batch...");
-                googleMap.clear();
-                newUserCircle();
-
-                ArrayList<Event> events = BeaconData.getEvents();
-                if (events != null) {
-                    for (int i = 0; i < events.size(); ++i) {
-                        createMarker(events.get(i));
-                    }
-                }
-            }
-        });
-
-        // Set a timer to update BeaconData periodically
-        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
-        int eventUpdateTime = sp.getInt("eventRefreshInterval", 5000);
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Double lat = mCurrentLocation.getLatitude();
-                Double lng = mCurrentLocation.getLongitude();
-                Log.i("Update", "Update Events Called at Location: " + lat + ", " + lng);
-                BeaconData.downloadUpdates((float)mCurrentLocation.getLatitude(), (float)mCurrentLocation.getLongitude());
-            }
-        }, 7500, eventUpdateTime);
-
-        // Initiate the BeaconData queue
-        if (! BeaconData.isQueueInitialized()) {
-            Log.i("MapFragment:onCreate...", "Initializing BeaconData queue");
-            BeaconData.initiateQueue(getContext());
-        }
-
-        Activity mapFragment = getActivity();
-
-        BeaconData.retrieveLoginToken(
-                new BeaconConsumer<Integer>() {
-                    @Override
-                    public void accept(Integer currentUserId) {
-                        // Login successful!
-                        if (! BeaconData.areVotesLoaded()) {
-                            BeaconData.getEventsVotedFor(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            // Success!
-                                            Log.i("getEventsVotedFor", "Successfully downloaded");
-                                        }
-                                    },
-                                    new BeaconConsumer<String>() {
-                                        @Override
-                                        public void accept(String err) {
-                                            // Failed...
-                                            Log.d("getEventsVotedFor", err.toString());
-                                        }
-                                    });
-                        }
-
-                        if (! BeaconData.areEventsDownloadedInitially()) {
-                            BeaconData.downloadAllEventsInArea(new Runnable() {
-                                           @Override
-                                           public void run() {
-                                               // Successfully downloaded all the events!
-                                               System.out.println("Downloaded all events!");
-                                               Log.i("Download Events", "Success!");
-                                           }
-                                       }, (float)mCurrentLocation.getLatitude(),
-                                    (float)mCurrentLocation.getLongitude());
-                        }
-                    }
-                },
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.e("retrieveLoginToken", "Failed to login");
-                    }
-                }, mapFragment
-        );
-
-        BeaconData.setOnInitialized(new Runnable() {
-            @Override
-            public void run() {
-                // On initialized code goes here
-                // The votes, events, and token are all available now...
-                Log.i("setOnInitialized", "Function called");
-            }
-        });
-
-
-        // End initiate BeaconData Class
-        ////////////////////////////////
-
         return rootView;
     }
 
@@ -519,6 +421,89 @@ public class MapFragment extends Fragment implements
 //                createMarker(event);
 //            }
 //        }
+
+        ////////////////////////////
+        // Initiate BeaconData Class
+
+        BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
+            @Override
+            public void accept(ArrayList<Event> updatedEvents) {
+                Log.i("Events Updated", "Starting to process update batch...");
+                googleMap.clear();
+                newUserCircle();
+
+                ArrayList<Event> events = BeaconData.getEvents();
+                if (events != null) {
+                    for (int i = 0; i < events.size(); ++i) {
+                        createMarker(events.get(i));
+                    }
+                }
+            }
+        });
+
+        // Initiate the BeaconData queue
+        if (! BeaconData.isQueueInitialized()) {
+            Log.i("MapFragment:onCreate...", "Initializing BeaconData queue");
+            BeaconData.initiateQueue(getContext());
+        }
+
+        if (! BeaconData.areVotesLoaded()) {
+            BeaconData.getEventsVotedFor(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            // Success!
+                            Log.i("getEventsVotedFor", "Successfully downloaded");
+                        }
+                    },
+                    new BeaconConsumer<String>() {
+                        @Override
+                        public void accept(String err) {
+                            // Failed...
+                            Log.d("getEventsVotedFor", err.toString());
+                        }
+                    });
+        }
+
+        if (! BeaconData.areEventsDownloadedInitially()) {
+            BeaconData.downloadAllEventsInArea(new Runnable() {
+                                                   @Override
+                                                   public void run() {
+                                                       // Successfully downloaded all the events!
+                                                       System.out.println("Downloaded all events!");
+                                                       Log.i("Download Events", "Success!");
+
+                                                       // Set a timer to update BeaconData periodically
+                                                       SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
+                                                       int eventUpdateTime = sp.getInt("eventRefreshInterval", 5000);
+                                                       Timer timer = new Timer();
+                                                       timer.schedule(new TimerTask() {
+                                                           @Override
+                                                           public void run() {
+                                                               Double lat = mCurrentLocation.getLatitude();
+                                                               Double lng = mCurrentLocation.getLongitude();
+                                                               Log.i("Update", "Update Events Called at Location: " + lat + ", " + lng);
+                                                               BeaconData.downloadUpdates((float)mCurrentLocation.getLatitude(), (float)mCurrentLocation.getLongitude());
+                                                           }
+                                                       }, 7500, eventUpdateTime);
+
+                                                   }
+                                               }, (float)mCurrentLocation.getLatitude(),
+                    (float)mCurrentLocation.getLongitude());
+        }
+
+        BeaconData.setOnInitialized(new Runnable() {
+            @Override
+            public void run() {
+                // On initialized code goes here
+                // The votes, events, and token are all available now...
+                Log.i("setOnInitialized", "Function called");
+            }
+        });
+
+
+        // End initiate BeaconData Class
+        ////////////////////////////////
     }
 
     @Override

@@ -26,29 +26,6 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
         if (!BeaconData.userHasLocallySavedLoginInformation(this))
             return LoginActivity.class;
         else {
-            // If BeaconData is not initialized, initiate it!
-            if (! BeaconData.isQueueInitialized()) {
-                BeaconData.initiateQueue(this);
-            }
-
-            final SplashActivity activity = this;
-
-            // If already logged in, go to the map page immediately
-            if (BeaconData.tryToLoadUserInfo(this)) {
-                BeaconData.retrieveLoginToken(
-                        new BeaconConsumer<Integer>() {
-                            @Override
-                            public void accept(Integer obj) {
-                                Log.d("Token", "Loaded Succesfully");
-                            }
-                        },
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                System.err.println("Failed to login...");
-                            }
-                        }, this);
-            }
             return MainActivity.class;
         }
     }
@@ -86,8 +63,38 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
     }
 
     private void startNextActivity() {
-        startActivity(new Intent(SplashActivity.this, getNextActivityClass()));
-        finish();
+
+        // If already logged in, go to the map page immediately
+        if (BeaconData.tryToLoadUserInfo(this)) {
+
+            if (!BeaconData.isQueueInitialized()) {
+                BeaconData.initiateQueue(this);
+            }
+
+            BeaconData.retrieveLoginToken(
+                    new BeaconConsumer<Integer>() {
+                        @Override
+                        public void accept(Integer obj) {
+                            Log.i("Token", "Loaded Succesfully");
+                            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        }
+                    },
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e("Login", "Failed to login");
+                        }
+                    }, this);
+        }
+        else {
+            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        }
     }
 
     @Override

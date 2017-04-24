@@ -446,8 +446,13 @@ public class BeaconData {
                                 JSONArray events = jobj.getJSONArray("events");
 
                                 for (int i = 0; i < events.length(); ++i) {
+                                    // Not deleted, so add it!
                                     JSONObject jsonObject = events.getJSONObject(i);
-                                    eventData.add(createEventFromEventJsonObject(jsonObject));
+                                    Event event = createEventFromEventJsonObject(jsonObject);
+
+                                    if (! event.deleted) {
+                                        eventData.add(createEventFromEventJsonObject(jsonObject));
+                                    }
                                 }
                             }
 
