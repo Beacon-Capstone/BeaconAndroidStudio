@@ -58,7 +58,6 @@ import static android.graphics.Color.RED;
 import static com.capstone.while1.beaconandroidstudio.R.id;
 import static com.capstone.while1.beaconandroidstudio.R.layout;
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
-import static com.google.android.gms.location.LocationRequest.create;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -143,8 +142,10 @@ public class MapFragment extends Fragment implements
                 newUserCircle();
 
                 ArrayList<Event> events = BeaconData.getEvents();
-                for (int i = 0; i < events.size(); ++i) {
-                    createMarker(events.get(i));
+                if (events != null) {
+                    for (int i = 0; i < events.size(); ++i) {
+                        createMarker(events.get(i));
+                    }
                 }
             }
         });
@@ -559,7 +560,6 @@ public class MapFragment extends Fragment implements
     }
 
     public void newUserCircle() {
-        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
         if (isUserCircleVisible())
             userCircle.remove();
         CircleOptions options = new CircleOptions()

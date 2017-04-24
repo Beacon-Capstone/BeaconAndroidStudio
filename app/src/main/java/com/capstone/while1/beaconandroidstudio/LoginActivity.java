@@ -3,7 +3,6 @@ package com.capstone.while1.beaconandroidstudio;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,8 +10,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -68,7 +65,9 @@ public class LoginActivity extends AppCompatActivity {
             messageOutput.setText("All fields must be set.");
         } else {
             final Button loginButton = (Button) findViewById(R.id.loginButton);
+            final TextView registerLink = (TextView) findViewById(R.id.registerPageLink);
             loginButton.setClickable(false); //don't let user spam login button
+            registerLink.setClickable(false); //User should not be able to go to register at this time
             final ProgressBar loginSpinner = (ProgressBar) findViewById(R.id.loginSpinner);
             loginSpinner.setVisibility(View.VISIBLE);
 
@@ -115,6 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                             messageOutput.setText("Incorrect username and or password.");
                             loginSpinner.setVisibility(View.GONE);
                             loginButton.setClickable(true);
+                            registerLink.setClickable(true); //User should be able to go to register at this time
                         }
                     });
 

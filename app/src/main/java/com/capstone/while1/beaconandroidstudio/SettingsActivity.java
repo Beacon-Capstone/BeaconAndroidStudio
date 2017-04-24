@@ -98,7 +98,10 @@ public class SettingsActivity extends PreferenceActivity {
                         PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity()
                                 .getApplicationContext()).edit().remove(SavedPreferences.PREF_USER).apply();
                         BeaconData.deleteLoginInformation(getActivity());
-                        SettingsFragment.this.startActivity(new Intent(getActivity(), SplashActivity.class));
+                        Intent intent = new Intent(getActivity(), SplashActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        SettingsFragment.this.startActivity(intent);
+                        getActivity().finish();
                         return false;
                     }
                 });
