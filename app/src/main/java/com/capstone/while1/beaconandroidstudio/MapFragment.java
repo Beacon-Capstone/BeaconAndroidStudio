@@ -53,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static android.content.Context.MODE_PRIVATE;
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
 import static com.capstone.while1.beaconandroidstudio.R.id;
@@ -416,21 +415,21 @@ public class MapFragment extends Fragment implements
         ////////////////////////////
         // Initiate BeaconData Class
 
-        BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
-            @Override
-            public void accept(ArrayList<Event> updatedEvents) {
-                Log.i("Events Updated", "Starting to process update batch...");
-                googleMap.clear();
-                newUserCircle();
-
-                ArrayList<Event> events = BeaconData.getEvents();
-                if (events != null) {
-                    for (int i = 0; i < events.size(); ++i) {
-                        createMarker(events.get(i));
-                    }
-                }
-            }
-        });
+//        BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
+//            @Override
+//            public void accept(ArrayList<Event> updatedEvents) {
+//                Log.i("Events Updated", "Starting to process update batch...");
+//                googleMap.clear();
+//                newUserCircle();
+//
+//                ArrayList<Event> events = BeaconData.getEvents();
+//                if (events != null) {
+//                    for (int i = 0; i < events.size(); ++i) {
+//                        createMarker(events.get(i));
+//                    }
+//                }
+//            }
+//        });
 
         // Initiate the BeaconData queue
         if (! BeaconData.isQueueInitialized()) {
@@ -466,21 +465,29 @@ public class MapFragment extends Fragment implements
                                                        Log.i("Download Events", "Success!");
 
                                                        // Set a timer to update BeaconData periodically
-                                                       SettingsActivity settingsActivity = new SettingsActivity();
-                                                       SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(settingsActivity.getApplicationContext());
-                                                       float eventRadius = sharedPref.getFloat("eventRadius", 1);
-                                                       int eventUpdateTime = sharedPref.getInt("eventRefreshInterval", 5000);
-                                                       Timer timer = new Timer();
-                                                       timer.schedule(new TimerTask() {
+                                                       SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+                                                       String interval = sp.getString("EVENT_INTERVAL", "5");
+                                                       final String radius = sp.getString("EVENT_RADIUS", "1");
+
+                                                       Timer softRefresh = new Timer();
+                                                       softRefresh.schedule(new TimerTask() {
                                                            @Override
                                                            public void run() {
                                                                Double lat = mCurrentLocation.getLatitude();
                                                                Double lng = mCurrentLocation.getLongitude();
-                                                               Log.i("Update", "Update Events Called at Location: " + lat + ", " + lng);
-                                                               BeaconData.downloadUpdates((float)mCurrentLocation.getLatitude(), (float)mCurrentLocation.getLongitude());
-                                                           }
-                                                       }, 7500, eventUpdateTime);
+                                                               Log.i("Update", "Soft Refresh Called at Location: " + lat + ", " + lng);
+                                                               ArrayList<Event> events = BeaconData.getEventsWithinDistance(
+                                                                       Float.parseFloat(radius),
+                                                                       (float) mCurrentLocation.getLatitude(),
+                                                                       (float) mCurrentLocation.getLongitude());
 
+                                                               if (events != null) {
+                                                                   for (Event event : events) {
+                                                                       createMarker(event);
+                                                                   }
+                                                               }
+                                                           }
+                                                       }, 7500, 2000);
                                                    }
                                                }, (float)mCurrentLocation.getLatitude(),
                     (float)mCurrentLocation.getLongitude());
@@ -544,10 +551,11 @@ public class MapFragment extends Fragment implements
     public void newUserCircle() {
         if (isUserCircleVisible())
             userCircle.remove();
-        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String radius = sp.getString("EVENT_RADIUS", "1");
         CircleOptions options = new CircleOptions()
                 .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
-                .radius(milesToMeters(sp.getFloat("eventRadius", 1)))
+                .radius(milesToMeters(Double.parseDouble(radius)))
                 .fillColor(0x309392F2)
                 .strokeWidth(0);
         this.userCircle = googleMap.addCircle(options);

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="refresh_intervals">
-        <item>0.5</item>
-        <item>1</item>
-        <item>2</item>
-        <item>5</item>
-        <item>10</item>
-        <item>15</item>
         <item>30</item>
         <item>60</item>
+        <item>120</item>
+        <item>300</item>
+        <item>600</item>
+        <item>900</item>
+        <item>1200</item>
+        <item>3600</item>
         <item>null</item>
     </string-array>
 
