@@ -45,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
                     new Runnable() {
                         @Override
                         public void run() {
-                            System.err.println("Failed to login...");
+                            Log.e("Login", "Failed to login.");
                         }
                     });
         }
@@ -80,12 +80,31 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             // Success!
+                            Log.i("isValidLogin", "Returned successfully");
                             BeaconData.registerLogin(LoginActivity.this, username, password);
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            LoginActivity.this.startActivity(intent);
-                            loginSpinner.setVisibility(View.GONE);
-                            LoginActivity.this.finish();
+                            BeaconData.retrieveLoginToken(
+                                    new BeaconConsumer<Integer>() {
+                                         @Override
+                                         public void accept(Integer userId) {
+                                             // Successfully retrieved the user id!
+                                             // Successfully logged in and grabbed a token!
+                                             Log.i("Success!", "Successfully Grabbed the Token!");
+
+                                             // Now move on to the next screen!
+                                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                             LoginActivity.this.startActivity(intent);
+                                             loginSpinner.setVisibility(View.GONE);
+                                             LoginActivity.this.finish();
+                                         }
+                                    },
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            // Failed to grab token
+                                            Log.e("Network Error", "Failed to grab the token!");
+                                        }
+                                    });
                         }
                     },
                     new Runnable() {

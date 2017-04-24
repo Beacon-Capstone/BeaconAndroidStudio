@@ -135,8 +135,17 @@ public class MapFragment extends Fragment implements
         BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
             @Override
             public void accept(ArrayList<Event> updatedEvents) {
-                for (Event event : updatedEvents) {
-                    System.out.println(event);
+                Log.i("Events Updated", "Starting to process update batch...");
+                for (Integer i = 0; i < updatedEvents.size(); ++i) {
+                    Event cEvent = updatedEvents.get(i);
+                    if (cEvent.deleted) {
+                        Log.i("setEventUpdateHandler", "Event deletion detected for id: " + i);
+                        createMarker(updatedEvents.get(i));
+                    }
+                    else {
+                        Log.i("setEventUpdateHandler", "Event creation / updated detected for id: " + i);
+                        createMarker(updatedEvents.get(i));
+                    }
                 }
             }
         });
@@ -156,31 +165,35 @@ public class MapFragment extends Fragment implements
                                         @Override
                                         public void run() {
                                             // Success!
+                                            Log.i("getEventsVotedFor", "Successfully downloaded");
                                         }
                                     },
                                     new BeaconConsumer<String>() {
                                         @Override
                                         public void accept(String err) {
                                             // Failed...
-                                            System.err.println(err);
+                                            Log.d("getEventsVotedFor", err.toString());
                                         }
                                     });
+                        }
+
+                        if (! BeaconData.areEventsDownloadedInitially()) {
+                            BeaconData.downloadAllEventsInArea(new Runnable() {
+                                           @Override
+                                           public void run() {
+                                               // Successfully downloaded all the events!
+                                               System.out.println("Downloaded all events!");
+                                               Log.i("Download Events", "Success!");
+                                           }
+                                       }, (float)mCurrentLocation.getLatitude(),
+                                    (float)mCurrentLocation.getLongitude());
                         }
                     }
                 },
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (! BeaconData.areEventsDownloadedInitially()) {
-                            BeaconData.downloadAllEventsInArea(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // Successfully downloaded all the events!
-                                    System.out.println("Downloaded all events!");
-                                }
-                            }, (float)mCurrentLocation.getLatitude(),
-                                    (float)mCurrentLocation.getLongitude());
-                        }
+                        Log.e("retrieveLoginToken", "Failed to login");
                     }
                 }
         );
@@ -190,6 +203,7 @@ public class MapFragment extends Fragment implements
             public void run() {
                 // On initialized code goes here
                 // The votes, events, and token are all available now...
+                Log.i("setOnInitialized", "Function called");
             }
         });
 
@@ -278,6 +292,9 @@ public class MapFragment extends Fragment implements
             newUserCircle();
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14), 1500, null);
         }
+    }
+
+    public void deleteMarker(final Event event) {
     }
 
     public void createMarker(final Event event){
@@ -476,12 +493,12 @@ public class MapFragment extends Fragment implements
         }
 //        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
 //        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
-        ArrayList<Event> events = BeaconData.getEvents();
-        if (events != null) {
-            for (Event event : events) {
-                createMarker(event);
-            }
-        }
+//        ArrayList<Event> events = BeaconData.getEvents();
+//        if (events != null) {
+//            for (Event event : events) {
+//                createMarker(event);
+//            }
+//        }
     }
 
     @Override

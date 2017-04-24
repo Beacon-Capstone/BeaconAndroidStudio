@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconConsumer;
 import com.capstone.while1.beaconandroidstudio.beacondata.BeaconData;
@@ -38,8 +39,7 @@ public class SplashActivity extends AppCompatActivity implements OnRequestPermis
                         new BeaconConsumer<Integer>() {
                             @Override
                             public void accept(Integer obj) {
-                                Intent intent = new Intent(activity, MainActivity.class);
-                                startActivity(intent);
+                                Log.d("Token", "Loaded Succesfully");
                             }
                         },
                         new Runnable() {

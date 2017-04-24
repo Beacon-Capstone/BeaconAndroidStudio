@@ -1,6 +1,7 @@
 package com.capstone.while1.beaconandroidstudio.beacondata;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,7 +32,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://e76cedf3.ngrok.io";
+    private static String restAPIDomain = "http://95c97732.ngrok.io";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
@@ -244,9 +245,6 @@ public class BeaconData {
                     @Override
                     public void run() {
                         System.out.println("Successfully grabbed the events voted for");
-                        if (isInitialized()) {
-                            onInitialized.run();
-                        }
                     }
                 },
                 new BeaconConsumer<String>()
@@ -359,18 +357,27 @@ public class BeaconData {
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jobj) {
+                        Log.i("BeaconData.login", "Login response received from the server.");
                         try {
                             Boolean loginSuccessful = jobj.getBoolean("loginSuccessful");
 
                             if (loginSuccessful) {
                                 String token = jobj.getString("token");
                                 int id = jobj.getInt("userId");
+                                Log.i("BeaconData.login", "Login was successful! (token, id) = (" + token + ", " + id + ")");
+
+                                // Store userId for future use
+                                currentUserId = id;
+
+                                // Notify of successful login attempt.
                                 onSuccess.accept(token, id);
                             } else {
+                                Log.e("BeaconData.login", "Invalid Credentials");
                                 onFailure.accept("Invalid Credentials");
                             }
                         } catch (Exception ex) {
                             // TODO: Problem loading the data!
+                            Log.e("BeaconData.login", "Failed to parse server response.");
                             onFailure.accept("Failed to parse server response.");
                         }
                     }
@@ -395,6 +402,26 @@ public class BeaconData {
         lastUpdatedTime = f.format((new Date()));
     }
 
+    private static Event createEventFromEventJsonObject(JSONObject jsonObject) {
+        try {
+            Event event = new Event();
+            event.id = jsonObject.getInt("id");
+            event.creatorId = jsonObject.getInt("creatorId");
+            event.deleted = jsonObject.getBoolean("deleted");
+            event.description = jsonObject.getString("description");
+            event.latitude = jsonObject.getDouble("latitude");
+            event.longitude = jsonObject.getDouble("longitude");
+            event.voteCount = jsonObject.getInt("voteCount");
+            event.timeCreated = jsonObject.getString("timeCreated");
+            event.timeLastUpdated = jsonObject.getString("timeLastUpdated");
+
+            return event;
+        } catch (JSONException e) {
+            Log.e("createEventFromEvent...", "Failed to parse event from event JsonObject");
+            return null;
+        }
+    }
+
     // Done - Initial
     public static void downloadAllEventsInArea(final Runnable onSuccess, Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString());
@@ -405,32 +432,35 @@ public class BeaconData {
         // Notify for each of them that the events now exist
 
         // Ask for the information from the server...
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, uri, null,
-                new Response.Listener<JSONArray>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, uri, null,
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(JSONArray jobj) {
+                    public void onResponse(JSONObject jobj) {
                         try {
-                            //TODO: Fix this... Double check the structure of the data...
-                            for (int i = 0; i < jobj.length(); ++i) {
-                                JSONObject jsonObject = jobj.getJSONObject(i);
-                                Event event = new Event();
-                                event.id = jsonObject.getInt("id");
-                                event.deleted = jsonObject.getBoolean("deleted");
-                                event.description = jsonObject.getString("description");
-                                event.latitude = jsonObject.getDouble("latitude");
-                                event.longitude = jsonObject.getDouble("longitude");
-                                event.voteCount = jsonObject.getInt("voteCount");
+                            Log.i("downloadAllEventsInArea", "Successfully received a response");
+                            if (eventData == null) {
+                                eventData = new ArrayList<>();
+                            }
 
-                                System.out.println(event.timeCreated);
-                                System.out.println(event.timeLastUpdated);
-                                eventData.add(event);
+                            if (jobj.getBoolean("wasSuccessful")) {
+                                Log.i("downloadAllEventsInArea", "Response deemed successful");
+                                JSONArray events = jobj.getJSONArray("events");
+
+                                for (int i = 0; i < events.length(); ++i) {
+                                    JSONObject jsonObject = events.getJSONObject(i);
+                                    eventData.add(createEventFromEventJsonObject(jsonObject));
+                                }
                             }
 
                             // Done adding stuff!
                             onSuccess.run();
-                        } catch (Exception ex) {
-                            // TODO: Problem loading the data!
-                            System.err.println(ex);
+
+                            // Check to see if the class is done loading...
+                            if (isInitialized()) {
+                                onInitialized.run();
+                            }
+                        } catch (JSONException ex) {
+                            Log.e("downloadAllEventsInArea", ex.toString());
                         }
 
                         updatedEventHandler.accept(eventData);
@@ -439,7 +469,7 @@ public class BeaconData {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.out.println("Failed to get the data... Retrying...");
+                        Log.e("downloadAllEventsInArea", "Failed to get the data.");
                     }
                 }
         );
@@ -902,8 +932,14 @@ public class BeaconData {
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jobj) {
+                        Log.i("getEventsVotedFor", "Server response received");
                         try {
+                            if (eventsVotedFor == null) {
+                                eventsVotedFor = new ArrayList<>();
+                            }
+
                             if (jobj.getBoolean("wasSuccessful")) {
+                                Log.i("getEventsVotedFor", "Response deemed successful.");
                                 JSONArray arr = jobj.getJSONArray("votes");
 
                                 for (int i = 0; i < arr.length(); ++i) {
@@ -913,14 +949,22 @@ public class BeaconData {
 
                                 if (onSuccess != null) {
                                     onSuccess.run();
+
+                                    // Check to see if the class is done loading...
+                                    if (isInitialized()) {
+                                        Log.i("getEventsVotedFor", "onInitialized() called");
+                                        onInitialized.run();
+                                    }
                                 }
                             } else {
                                 if (onFailure != null) {
+                                    Log.e("getEventsVotedFor", "Response received, but was deemed unsuccessful");
                                     onFailure.accept("Invalid login detected when trying to retrieve user votes.");
                                 }
                             }
                         } catch (JSONException ex) {
                             System.err.println(ex);
+                            Log.e("getEventsVotedFor", ex.toString());
                         }
                     }
                 },
@@ -928,6 +972,7 @@ public class BeaconData {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         System.err.println(error);
+                        Log.e("getEventsVotedFor", error.toString());
                     }
                 });
 
