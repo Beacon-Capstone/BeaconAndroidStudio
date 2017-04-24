@@ -31,10 +31,12 @@ public class LoginActivity extends AppCompatActivity {
 
         // If already logged in, go to the map page immediately
         if (BeaconData.tryToLoadUserInfo(this)) {
+            Log.e("here", "1");
             BeaconData.retrieveLoginToken(
                     new BeaconConsumer<Integer>() {
                          @Override
                          public void accept(Integer obj) {
+                             Log.e("here 2", "2");
                              Intent intent = new Intent(activity, MainActivity.class);
                              startActivity(intent);
                          }
@@ -48,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Else, request a login
+        Log.e("here 3", "3");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
     }
