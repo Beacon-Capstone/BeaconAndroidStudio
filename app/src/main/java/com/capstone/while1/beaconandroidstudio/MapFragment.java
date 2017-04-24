@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -411,14 +412,6 @@ public class MapFragment extends Fragment implements
                 startLocationUpdates();
             }
         }
-//        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
-//        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
-//        ArrayList<Event> events = BeaconData.getEvents();
-//        if (events != null) {
-//            for (Event event : events) {
-//                createMarker(event);
-//            }
-//        }
 
         ////////////////////////////
         // Initiate BeaconData Class
@@ -463,6 +456,7 @@ public class MapFragment extends Fragment implements
                     });
         }
 
+
         if (! BeaconData.areEventsDownloadedInitially()) {
             BeaconData.downloadAllEventsInArea(new Runnable() {
                                                    @Override
@@ -472,8 +466,10 @@ public class MapFragment extends Fragment implements
                                                        Log.i("Download Events", "Success!");
 
                                                        // Set a timer to update BeaconData periodically
-                                                       SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
-                                                       int eventUpdateTime = sp.getInt("eventRefreshInterval", 5000);
+                                                       SettingsActivity settingsActivity = new SettingsActivity();
+                                                       SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(settingsActivity.getApplicationContext());
+                                                       float eventRadius = sharedPref.getFloat("eventRadius", 1);
+                                                       int eventUpdateTime = sharedPref.getInt("eventRefreshInterval", 5000);
                                                        Timer timer = new Timer();
                                                        timer.schedule(new TimerTask() {
                                                            @Override
@@ -548,9 +544,10 @@ public class MapFragment extends Fragment implements
     public void newUserCircle() {
         if (isUserCircleVisible())
             userCircle.remove();
+        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
         CircleOptions options = new CircleOptions()
                 .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
-                .radius(milesToMeters(30))
+                .radius(milesToMeters(sp.getFloat("eventRadius", 1)))
                 .fillColor(0x309392F2)
                 .strokeWidth(0);
         this.userCircle = googleMap.addCircle(options);
