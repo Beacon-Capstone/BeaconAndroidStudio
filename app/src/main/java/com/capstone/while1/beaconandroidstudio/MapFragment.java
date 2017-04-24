@@ -314,22 +314,26 @@ public class MapFragment extends Fragment implements
         //Adds marker to map based on latitude and longitude parameters
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))); //default marker color is blue
+        mark.setTag(event);
         //creatorId is an Integer which is an object, hence the .equals()
         if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
             //make user-made icons different color to help distinguish
             mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, event);
+                    Event eve = (Event) marker.getTag();
+                    ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, eve);
                     return true;
                 }
             });
         } else { //events not made by user (made by other users)
             googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
-                public boolean onMarkerClick(Marker arg0) {
+                public boolean onMarkerClick(Marker marker) {
                     //Creates dialog
+                    Event eve = (Event) marker.getTag();
                     final Dialog dialog = new Dialog(MapFragment.this.getActivity());
                     //Sets event title
                     //dialog.setTitle(title);
@@ -338,13 +342,13 @@ public class MapFragment extends Fragment implements
                     //Sets event description
                     TextView titleTextView = (TextView) dialog.findViewById(R.id.eventTitle);
                     titleTextView.setTypeface(null, Typeface.BOLD);
-                    titleTextView.setText(event.name);
+                    titleTextView.setText(eve.name);
                     //dialog.setTitle(title);
                     TextView descriptionTextView = (TextView) dialog.findViewById(R.id.eventDescription);
-                    descriptionTextView.setText(event.description);
+                    descriptionTextView.setText(eve.description);
                     descriptionTextView.setMovementMethod(new ScrollingMovementMethod());
                     final TextView creatorPopularityTextView = (TextView) dialog.findViewById(R.id.eventCreatorAndPopularity);
-                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
+                    creatorPopularityTextView.setText(/*"Created By: " + event.creatorId + */"Popularity: " + eve.voteCount);
 
 
                     //change color of marker to green to let user know they've already looked at it
@@ -355,7 +359,7 @@ public class MapFragment extends Fragment implements
                     //final boolean[] upvote = {false, true, false};
                     //final boolean[] downvote = {false, true, false};
                     //User has clicked the "upvote button"
-                    MapFragment.this.upvoteDownvoteListener(up, down, event, creatorPopularityTextView);
+                    MapFragment.this.upvoteDownvoteListener(up, down, eve, creatorPopularityTextView);
 
                     //User clicked "cancel button"
                     closeBtn.setOnClickListener(new View.OnClickListener() {

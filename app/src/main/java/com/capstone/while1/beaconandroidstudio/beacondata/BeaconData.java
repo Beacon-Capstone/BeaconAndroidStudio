@@ -407,6 +407,7 @@ public class BeaconData {
             Event event = new Event();
             event.id = jsonObject.getInt("id");
             event.creatorId = jsonObject.getInt("creatorId");
+            event.name = jsonObject.getString("name");
             event.deleted = jsonObject.getBoolean("deleted");
             event.description = jsonObject.getString("description");
             event.latitude = jsonObject.getDouble("latitude");
