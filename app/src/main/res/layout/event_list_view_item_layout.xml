@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:text="GGGGGGGGGGGGGGGGGGGG"
+        android:textSize="@string/event_title_text_size"
+        android:id="@+id/eventName"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:maxLength="1000"
+        android:text="Hey look a super cool event is going down in a neighborhood near you, oh boy you should go check it out before it ends woo wee lots of cool stuff going on at this cool event. There's also more stuff going on that will put this event up to 256 characters!!!"
+        android:id="@+id/eventDescription"
+        android:layout_below="@+id/eventName"
+        android:layout_alignParentStart="true"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/distance"
+        android:text="1000 meters away"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:textAlignment="textEnd"
+        android:layout_below="@+id/eventDescription"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/voteCount" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/voteCount"
+        android:text="+4444"
+        android:textAlignment="gravity"
+        android:paddingEnd="10dp"
+        android:paddingTop="5dp"
+        android:layout_below="@+id/eventDescription"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/eventCreated"
+        android:text="4 hours old"
+        android:paddingEnd="5dp"
+        android:paddingStart="15dp"
+        android:paddingTop="5dp"
+        android:layout_below="@+id/eventDescription"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/voteCount" />
+    <View
+        android:background="#c0c0c0"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/distance" />
+
+
+
+
+</RelativeLayout>

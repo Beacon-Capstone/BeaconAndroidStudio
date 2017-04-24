@@ -326,10 +326,16 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(this, SettingsActivity.class);
                 startActivity(i);
                 return true;
+            case R.id.open_list_view:
+                Intent intent = new Intent(this, EventListViewActivity.class);
+                startActivity(intent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
 
     @Override
     public void onResume() {

@@ -1022,8 +1022,8 @@ public class BeaconData {
     }
 
     public static void updateUserPassword(String currPass, String newPass) {
-        String queryString = generateQueryString("userId", currentUserId.toString(), "currPass", currPass, "newPass", newPass);
-        String uri = restAPIDomain + "/api/Users/changeUserPassword" + queryString;
+        String queryString = generateQueryString("id", currentUserId.toString(), "oldPassword", currPass, "newPassword", newPass);
+        String uri = restAPIDomain + "/api/Users/changePassword" + queryString;
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, uri, null,
                 new Response.Listener<JSONObject>() {
