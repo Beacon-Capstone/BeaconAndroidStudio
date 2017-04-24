@@ -578,9 +578,10 @@ public class MapFragment extends Fragment implements
     public void onPause() {
         super.onPause();
         // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
-        if (mGoogleApiClient.isConnected()) {
-            stopLocationUpdates();
-        }
+//        if (mGoogleApiClient.isConnected()) {
+//            stopLocationUpdates();
+//        }
+        MainActivity.userHasAppOpen = false;
     }
 
     @Override
