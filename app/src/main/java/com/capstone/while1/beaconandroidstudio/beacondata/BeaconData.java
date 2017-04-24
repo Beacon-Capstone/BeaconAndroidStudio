@@ -394,14 +394,6 @@ public class BeaconData {
         queue.add(tokenRequest);
     }
 
-    // Done - Init
-    private static void updateLastUpdatedTime() {
-        // Calculate the UTC time and apply it to an appendable string in lastUpdatedTime
-        final SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-        f.setTimeZone(TimeZone.getTimeZone("UTC"));
-        lastUpdatedTime = f.format((new Date()));
-    }
-
     private static Event createEventFromEventJsonObject(JSONObject jsonObject) {
         try {
             Event event = new Event();
@@ -507,7 +499,7 @@ public class BeaconData {
                                     if (event.deleted) {
                                         // Remove from local database
                                         int indexToDelete = getEventIndex(event.id);
-                                        if (indexToDelete == -1) {
+                                        if (indexToDelete != -1) {
                                             eventData.remove(indexToDelete);
                                         }
                                     } else {
@@ -612,17 +604,17 @@ public class BeaconData {
                                 // Remove from local cache
                                 eventData.remove(eIndex);
                             } else {
-                                System.err.println(obj.getString("Message"));
+                                Log.e("deleteEvent", obj.getString("Message"));
                             }
                         } catch (JSONException ex) {
-                            System.err.println(ex);
+                            Log.e("deleteEvent", ex.toString());
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError x) {
-                        System.err.println(x);
+                        Log.e("deleteEvent", x.toString());
                     }
                 });
 

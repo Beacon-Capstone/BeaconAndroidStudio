@@ -220,11 +220,12 @@ public class MainActivity extends AppCompatActivity {
                 final DonutProgress donutProgress = (DonutProgress) dialogView.findViewById(R.id.deleteDonutProgress);
                 donutProgress.setVisibility(View.VISIBLE);
 
-                deleteButton.setOnTouchListener(new View.OnTouchListener() {
-                    private Handler progressHandler;
-                    private DonutProgress delDonut;
-                    private int progress = 0;
-                    Runnable progressUp = new Runnable() {
+                deleteButton.setOnTouchListener(
+                    new View.OnTouchListener() {
+                        private Handler progressHandler;
+                        private DonutProgress delDonut;
+                        private int progress = 0;
+                        Runnable progressUp = new Runnable() {
                         @Override
                         public void run() {
                             if (progress < 100) {
@@ -235,18 +236,19 @@ public class MainActivity extends AppCompatActivity {
                                 progressHandler.removeCallbacks(progressUp);
                                 progressHandler = null;
                                 //delete event function call
-                                deleteEvent(marker, event.id);
+                                //deleteEvent(marker, event.id);
+                                BeaconData.deleteEvent(event.id);
                                 dialog.dismiss();
                             }
                         }
                     };
 
                     @Override
-                    public boolean onTouch(View v, MotionEvent event) {
+                    public boolean onTouch(View v, MotionEvent motionEvent) {
                         if (delDonut == null) {
                             delDonut = donutProgress;
                         }
-                        switch(event.getAction()) {
+                        switch(motionEvent.getAction()) {
                             case MotionEvent.ACTION_DOWN:
                                 if (progressHandler != null) return true;
                                 if (progress < 100) {
@@ -271,11 +273,6 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                         return false;
-                    }
-
-                    void deleteEvent(Marker marker, int eventId) {
-                        BeaconData.deleteEvent(eventId);
-                        marker.remove();
                     }
                 });
             }
