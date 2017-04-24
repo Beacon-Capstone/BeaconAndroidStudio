@@ -2,6 +2,10 @@ package com.capstone.while1.beaconandroidstudio;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,9 +13,12 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -85,6 +92,7 @@ public class MapFragment extends Fragment implements
     private boolean upvote;
     private boolean downvote;
     private Circle userCircle;
+    private boolean isPaused = false;
 
     public MapFragment() {
         mapFragment = this;
@@ -220,25 +228,27 @@ public class MapFragment extends Fragment implements
         final Marker mark = googleMap.addMarker(new MarkerOptions().position(new LatLng(event.latitude, event.longitude))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))); //default marker color is blue
         mark.setTag(event);
-        //creatorId is an Integer which is an object, hence the .equals()
-        if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
-            //make user-made icons different color to help distinguish
-            mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    Event eve = (Event) marker.getTag();
+        // If made by the current user, adjust the color of the marker to reflect that
+        if (event.creatorId.equals(BeaconData.getCurrentUserId())) {
+            mark.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+        }
+
+        // Now establish the event listener
+        // events not made by user (made by other users)
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                //Creates dialog
+                Event eve = (Event) marker.getTag();
+
+                if (eve.creatorId.equals(BeaconData.getCurrentUserId())) {
+                    // The current user owns the event, so show the appropriate menu
                     ((MainActivity) MapFragment.this.getActivity()).onEditEvent(marker, eve);
                     return true;
                 }
-            });
-        } else { //events not made by user (made by other users)
-            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    //Creates dialog
-                    Event eve = (Event) marker.getTag();
+                else {
+                    // The current user does not own the event, so show the other menu
                     final Dialog dialog = new Dialog(MapFragment.this.getActivity());
                     //Sets event title
                     //dialog.setTitle(title);
@@ -276,9 +286,8 @@ public class MapFragment extends Fragment implements
                     dialog.show();
                     return true;
                 }
-            });
-        }
-
+            }
+        });
     }
 
     private void upvoteDownvoteListener(final ImageButton up, final ImageButton down, final Event event, final TextView popularText)
@@ -444,104 +453,6 @@ public class MapFragment extends Fragment implements
                 }
             }
         });
-
-        // For down clicked
-        // If voted on this event, then unvote and uncolor both buttons
-        // Vote for down
-
-        //User clicks on upvote
-//        up.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                // User has not voted yet, so vote up!
-//                if ((BeaconData.getVoteDecisionForEvent(event.id) != Voted.FOR)) {
-//
-//                    ///////////////////////////////////////////////
-//                    //If user previously downvoted, remove downvote
-//
-//                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)
-//                        BeaconData.unvoteOnEvent(event.id,
-//                                new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        // Success!
-//
-//                                        // Update UI
-//                                        up.setColorFilter(null);
-//                                        down.setColorFilter(null);
-//
-//                                        // Now upvote
-//                                        BeaconData.voteUpOnEvent(event.id,
-//                                        new Runnable() {
-//                                            @Override
-//                                            public void run() {
-//                                                // Successfully voted up on an event
-//                                                // Color accordingly
-//
-//                                                // Update popularity text
-//                                                up.setColorFilter(Color.GREEN);
-//                                                down.setColorFilter(null);
-//                                                popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-//
-//                                            }
-//                                        },
-//                                                new Runnable() {
-//                                                    @Override
-//                                                    public void run() {
-//                                                        // Failed to vote up on the event
-//                                                        // Do nothing...
-//                                                    }
-//                                                });
-//                                    }
-//                                },
-//                                new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        // Failed!
-//                                        // Do nothing
-//                                    }
-//                                });
-//
-//                }
-//                //Upvote is "unvoted"
-//                else if (BeaconData.getVoteDecisionForEvent(event.id)) {
-//                    // Unvote only!
-//
-//                    up.setColorFilter(null);
-//                    BeaconData.unvoteOnEvent(event.id);
-//                    BeaconData.updateEvent(event);
-//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-//                }
-//            }
-//        });
-
-        //User clicked "downvote button"
-//        down.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                //If user has not downvoted
-//                if (!(BeaconData.getVoteDecisionForEvent(event.id) == Voted.AGAINST)) {
-//                    down.setColorFilter(RED);
-//                    up.setColorFilter(null);
-//                    //If user previously upvoted, remove vote
-//                    if(BeaconData.getVoteDecisionForEvent(event.id) == Voted.FOR)
-//                        BeaconData.unvoteOnEvent(event.id);
-//                    BeaconData.voteDownOnEvent(event.id);
-//                    BeaconData.updateEvent(event);
-//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-//                }
-//
-//                //User previously upvoted
-//
-//                //Downvote is "unvoted"
-//                else {
-//                    down.setColorFilter(null);
-//                    BeaconData.unvoteOnEvent(event.id);
-//                    BeaconData.updateEvent(event);
-//                    popularText.setText(/*"Created By: " + event.creatorId + */"Popularity: " + event.voteCount);
-//                }
-//            }
-//        });
     }
 
     @Override
@@ -575,6 +486,8 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onPause() {
+        isPaused = true;
+
         super.onPause();
         // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
 //        if (mGoogleApiClient.isConnected()) {
@@ -585,6 +498,8 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onStop() {
+        isPaused = false;
+
         super.onStop();
         mGoogleApiClient.disconnect();
     }
@@ -691,6 +606,59 @@ public class MapFragment extends Fragment implements
 
         // End initiate BeaconData Class
         ////////////////////////////////
+
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (! isPaused) {
+                    Log.i("notificationHandler", "Handling notifications.");
+                    Location currLocation = MapFragment.mapFragment.getCurrentLocation();
+                    PreferenceManager.getDefaultSharedPreferences(getContext());
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+                    String radiusInMiles = sp.getString("EVENT_RADIUS", "1");
+                    float radiusInMilesAsFloat = Float.parseFloat(radiusInMiles);
+                    notification(handler, BeaconData.getEventsWithinDistance((float)radiusInMilesAsFloat * 1609, (float)currLocation.getLatitude(), (float)currLocation.getLongitude()).size());
+                }
+            }
+        }, 0, 1000 * 5);
+    }
+
+
+    public void notification(Handler handler, int numEvents) {
+        if (numEvents == 0) {
+            return;
+        }
+        final NotificationCompat.Builder notification;
+
+        notification = new NotificationCompat.Builder(this.getActivity());
+        notification.setAutoCancel(true); //deletes notification after u click on it
+
+        notification.setSmallIcon(R.mipmap.ic_launcher);
+        notification.setTicker("This is the ticker");
+        notification.setWhen(System.currentTimeMillis());
+        notification.setContentTitle("Beacon Events");
+        notification.setContentText("There are events in your area.");
+        //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
+        notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+
+        Intent intent = new Intent(this.getContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notification.setContentIntent(pendingIntent);
+
+        final NotificationManager nm = (NotificationManager) this.getActivity().getSystemService(this.getActivity().NOTIFICATION_SERVICE);
+
+        MainActivity.debugPrint("sending notification in 10 seconds...");
+        //do notification after 10 seconds => tested and it works if the app is running in background
+        // if they actually quit/close the app rather than just hitting home button or locking screen the notification does not appear
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                nm.notify(MainActivity.l33tHacks, notification.build());
+                MainActivity.debugPrint("SENT NOTIFICATION!");
+            }
+        }, 10000);
     }
 
     @Override

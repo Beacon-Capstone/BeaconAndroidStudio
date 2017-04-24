@@ -589,16 +589,26 @@ public class BeaconData {
 
     // Done - Init
     public static ArrayList<Event> getEventsWithinDistance(float distance, float latitude, float longitude) {
+
+        if (eventData == null) {
+            return new ArrayList<Event>();
+        }
+
         ArrayList<Event> eventsWithinDistance = new ArrayList<>();
 
         for (Event e : eventData) {
-            double dlon = e.longitude - longitude;
-            double dlat = e.latitude - latitude;
-            double a = Math.pow(Math.sin(dlat / 2), 2) + Math.cos(e.latitude) * Math.cos(latitude) * Math.pow(Math.sin(dlon / 2), 2);
-            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            double cDistance = 3961 * c; //Number of miles in radius of Earth * c
+            double R = 6371000; // Radius of Earth in meters
+            double lat1 = Math.toRadians(e.latitude);
+            double lat2 = Math.toRadians(latitude);
+            double lon1 = Math.toRadians(e.longitude);
+            double lon2 = Math.toRadians(longitude);
+            double dlat = lat2 - lat1;
+            double dlon = lon2 - lon1;
+            double a = Math.sin(dlat / 2) * Math.sin(dlat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) * Math.sin(dlon / 2);
+            double c = 2 * Math.asin(Math.sqrt(a));
+            double distanceInMeters = R * c;
 
-            if (cDistance < distance) {
+            if (distanceInMeters < distance) {
                 // Event is close enough to consider
                 eventsWithinDistance.add(e);
             }
