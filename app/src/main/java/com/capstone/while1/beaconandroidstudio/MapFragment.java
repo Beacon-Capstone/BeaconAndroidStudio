@@ -49,6 +49,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.graphics.Color.GREEN;
@@ -56,6 +58,7 @@ import static android.graphics.Color.RED;
 import static com.capstone.while1.beaconandroidstudio.R.id;
 import static com.capstone.while1.beaconandroidstudio.R.layout;
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
+import static com.google.android.gms.location.LocationRequest.create;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -136,21 +139,33 @@ public class MapFragment extends Fragment implements
             @Override
             public void accept(ArrayList<Event> updatedEvents) {
                 Log.i("Events Updated", "Starting to process update batch...");
-                for (Integer i = 0; i < updatedEvents.size(); ++i) {
-                    Event cEvent = updatedEvents.get(i);
-                    if (cEvent.deleted) {
-                        Log.i("setEventUpdateHandler", "Event deletion detected for id: " + i);
-                        createMarker(updatedEvents.get(i));
-                    }
-                    else {
-                        Log.i("setEventUpdateHandler", "Event creation / updated detected for id: " + i);
-                        createMarker(updatedEvents.get(i));
-                    }
+                googleMap.clear();
+                newUserCircle();
+
+                ArrayList<Event> events = BeaconData.getEvents();
+                for (int i = 0; i < events.size(); ++i) {
+                    createMarker(events.get(i));
                 }
             }
         });
 
+        // Set a timer to update BeaconData periodically
+        SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
+        int eventUpdateTime = sp.getInt("eventRefreshInterval", 5000);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Double lat = mCurrentLocation.getLatitude();
+                Double lng = mCurrentLocation.getLongitude();
+                Log.i("Update", "Update Events Called at Location: " + lat + ", " + lng);
+                BeaconData.downloadUpdates((float)mCurrentLocation.getLatitude(), (float)mCurrentLocation.getLongitude());
+            }
+        }, 7500, eventUpdateTime);
+
+        // Initiate the BeaconData queue
         if (! BeaconData.isQueueInitialized()) {
+            Log.i("MapFragment:onCreate...", "Initializing BeaconData queue");
             BeaconData.initiateQueue(getContext());
         }
 
@@ -292,9 +307,6 @@ public class MapFragment extends Fragment implements
             newUserCircle();
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14), 1500, null);
         }
-    }
-
-    public void deleteMarker(final Event event) {
     }
 
     public void createMarker(final Event event){

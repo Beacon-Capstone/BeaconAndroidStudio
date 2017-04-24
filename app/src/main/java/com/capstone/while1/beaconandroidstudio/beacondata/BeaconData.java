@@ -42,7 +42,7 @@ public class BeaconData {
     private static RequestQueue queue = null;
     private static BeaconConsumer<ArrayList<Event>> updatedEventHandler = null;
     private static Runnable onInitialized = null;
-    private static ArrayList<Integer> eventsVotedFor = null;
+    private static ArrayList<Vote> eventsVotedFor = null;
 
     // Make the constructor private to force static use of the class.
     private BeaconData() {
@@ -452,6 +452,9 @@ public class BeaconData {
                                 }
                             }
 
+                            // Update the last updated time...
+                            lastUpdatedTime = jobj.getString("currentServerTime");
+
                             // Done adding stuff!
                             onSuccess.run();
 
@@ -478,7 +481,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static void downloadUpdates(Float latitude, Float longitude) {
+    public static void downloadUpdates(Float latitude, Float longitude) {
         String queryString = generateQueryString("token", loginToken, "lat", latitude.toString(), "lng", longitude.toString(), "lastUpdatedTime", lastUpdatedTime);
         String uri = restAPIDomain + "/api/Events/du" + queryString;
 
@@ -490,19 +493,13 @@ public class BeaconData {
                         ArrayList<Event> updatedEvents = new ArrayList<>();
 
                         try {
+                            Log.i("downloadUpdates", "Response received from the web server.");
+
                             if (jobj.getBoolean("wasSuccessful")) {
+                                Log.i("downloadUpdates", "Response received was deemed successful.");
                                 JSONArray eventsJsonArray = jobj.getJSONArray("events");
                                 for (int i = 0; i < eventsJsonArray.length(); ++i) {
-                                    JSONObject jsonObject = eventsJsonArray.getJSONObject(i);
-                                    Event event = new Event();
-                                    event.id = jsonObject.getInt("id");
-                                    event.deleted = jsonObject.getBoolean("deleted");
-                                    event.description = jsonObject.getString("description");
-                                    event.latitude = jsonObject.getDouble("latitude");
-                                    event.longitude = jsonObject.getDouble("longitude");
-                                    event.voteCount = jsonObject.getInt("voteCount");
-                                    System.out.println(event.timeCreated);
-                                    System.out.println(event.timeLastUpdated);
+                                    Event event = createEventFromEventJsonObject(eventsJsonArray.getJSONObject(i));
 
                                     // Test to see if the event was deleted
                                     if (event.deleted) {
@@ -511,7 +508,7 @@ public class BeaconData {
                                         eventData.remove(indexToDelete);
                                     } else {
                                         // The event was not deleted...
-                                        if (!eventExists(jsonObject.getInt("id"))) {
+                                        if (!eventExists(event.id)) {
                                             // Create the new event
                                             eventData.add(event);
                                         } else {
@@ -521,15 +518,16 @@ public class BeaconData {
                                         }
                                     }
 
+                                    lastUpdatedTime = jobj.getString("currentServerTime");
+
                                     // Make sure to add it to the notification list...
                                     updatedEvents.add(event);
                                 }
                             } else {
-                                System.err.println("Request failed for getting updates...");
+                                Log.e("downloadUpdates", "Failed to download updates");
                             }
-                        } catch (Exception ex) {
-                            // TODO: Problem loading the data!
-                            System.err.println(ex);
+                        } catch (JSONException ex) {
+                            Log.e("downloadUpdates", ex.toString());
                         }
 
                         updatedEventHandler.accept(updatedEvents);
@@ -538,7 +536,7 @@ public class BeaconData {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.out.println("Failed to get the data... Retrying...");
+                        Log.e("downloadUpdates", "Failed to get the data.");
                     }
                 }
         );
@@ -547,7 +545,7 @@ public class BeaconData {
     }
 
     // Done - Initial
-    private static Boolean eventExists(int id) {
+    public static Boolean eventExists(int id) {
         for (int i = 0; i < eventData.size(); ++i) {
             if (eventData.get(i).id == id) {
                 return true;
@@ -813,7 +811,12 @@ public class BeaconData {
                     public void onResponse(JSONObject jobj) {
                         try {
                             if (jobj.getBoolean("wasSuccessful")) {
-                                eventsVotedFor.add(id);
+                                Vote newVote = new Vote();
+                                JSONObject vote = jobj.getJSONObject("vote");
+                                newVote.eventId = jobj.getInt("eventId");
+                                newVote.numVotes = jobj.getInt("numVotes");
+
+                                eventsVotedFor.add(newVote);
                                 Event event = getEvent(id);
                                 assert event != null;
                                 event.voteCount++;
@@ -851,7 +854,10 @@ public class BeaconData {
                     public void onResponse(JSONObject jobj) {
                         try {
                             if (jobj.getBoolean("wasSuccessful")) {
-                                eventsVotedFor.add(id);
+                                Vote cVote = new Vote();
+                                cVote.eventId = jobj.getJSONObject("vote").getInt("eventId");
+                                cVote.numVotes = jobj.getJSONObject("vote").getInt("numVotes");
+                                eventsVotedFor.add(cVote);
                                 Event event = getEvent(id);
                                 assert event != null;
                                 event.voteCount--;
@@ -859,14 +865,14 @@ public class BeaconData {
                                 System.err.println(jobj.getString("Message"));
                             }
                         } catch (JSONException ex) {
-                            System.err.println(ex);
+                            Log.e("voteDownOnEvent", ex.toString());
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.err.println(error);
+                        Log.e("voteDownOnEvent", error.toString());
                     }
                 });
 
@@ -901,7 +907,7 @@ public class BeaconData {
 
                                 // Remove vote itself
                                 for (int i = 0; i < eventsVotedFor.size(); ++i) {
-                                    if (eventsVotedFor.get(i) == id) {
+                                    if (eventsVotedFor.get(i).eventId == id) {
                                         eventsVotedFor.remove(i);
                                         Event event = getEvent(id);
                                         event.voteCount -= numVotes;
@@ -943,8 +949,10 @@ public class BeaconData {
                                 JSONArray arr = jobj.getJSONArray("votes");
 
                                 for (int i = 0; i < arr.length(); ++i) {
-                                    Integer val = arr.getInt(i);
-                                    eventsVotedFor.add(val);
+                                    Vote cVote = new Vote();
+                                    cVote.eventId = arr.getJSONObject(i).getInt("eventId");
+                                    cVote.numVotes = arr.getJSONObject(i).getInt("numVotes");
+                                    eventsVotedFor.add(cVote);
                                 }
 
                                 if (onSuccess != null) {
@@ -982,10 +990,27 @@ public class BeaconData {
     // Done - Init
     public static boolean haveVotedForEvent(int id) {
         for (int i = 0; i < eventsVotedFor.size(); ++i) {
-            return eventsVotedFor.get(i) == id;
+            if (eventsVotedFor.get(i).eventId == id) {
+                return true;
+            }
         }
 
-        return true;
+        return false;
+    }
+
+    public static Voted getVoteDecisionForEvent(int id) {
+        for (int i = 0; i < eventsVotedFor.size(); ++i) {
+            if (eventsVotedFor.get(i).eventId == id) {
+                if (eventsVotedFor.get(i).numVotes > 0) {
+                    return Voted.FOR;
+                }
+                else {
+                    return Voted.AGAINST;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static void setAttendedEvent(int id, Callable<Integer> callMe) {
