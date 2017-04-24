@@ -154,6 +154,8 @@ public class LoginActivity extends AppCompatActivity {
      */
     //goToLoginPage() is similar
     public void goToRegisterPage(View v) {
+        //not needed anymore because we lock the links when user logs in/registers
+        //this.finish();
         startActivity(new Intent(this, RegisterActivity.class));
     }
 
