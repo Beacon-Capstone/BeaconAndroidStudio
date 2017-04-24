@@ -190,12 +190,14 @@ public class MainActivity extends AppCompatActivity {
                 String newDescription = eventDescription.getText().toString();
 
                 if (!newTitle.equals("") && !newDescription.equals("")) {
+                    //TODO: Add additional data bound checks on the front-end
                     event.name = newTitle;
                     event.description = newDescription;
-                    BeaconData.updateEvent(event);
                     //!!!!need code for updating event in database
                     dialog.dismiss();
                 }
+
+                BeaconData.updateEvent(event);
             }
         });
 

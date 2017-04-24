@@ -634,12 +634,14 @@ public class BeaconData {
     // Done - Init
     public static void updateEvent(final Event event) {
         String queryString = generateQueryString("token", loginToken);
-        String uri = restAPIDomain + "/api/Events" + queryString;
+        String uri = restAPIDomain + "/api/Events/Event" + queryString;
 
         JSONObject eventObj = new JSONObject();
         try {
             //event.deleted, event.timeCreated, event.voteCount, event.latitude, event.longitude, event.description, event.id, event.name
             eventObj.put("id", event.id);
+            eventObj.put("timeLastUpdated", event.timeLastUpdated);
+            eventObj.put("creatorId", event.creatorId);
             eventObj.put("deleted", event.deleted);
             eventObj.put("timeCreated", event.timeCreated);
             eventObj.put("voteCount", event.voteCount);
@@ -657,7 +659,9 @@ public class BeaconData {
                     @Override
                     public void onResponse(JSONObject obj) {
                         try {
+                            Log.i("updateEvent", "Received a valid request from the server.");
                             if (obj.getBoolean("wasSuccessful")) {
+                                Log.i("updateEvent", "Request from the server is deemed successful");
                                 // Successful!
                                 // Event was updated successfully, so updated our local copy
                                 int updatedEventIndex = getEventIndex(event.id);
@@ -669,11 +673,11 @@ public class BeaconData {
                                 updatedEventHandler.accept(updatedChanges);
                             } else {
                                 // Unsuccessful, print error message from server
-                                System.err.println(obj.getString("message"));
+                                Log.e("updateEvent", obj.getString("message"));
                             }
                         } catch (JSONException ex) {
                             // Error parsing stuff...
-                            System.err.println(ex);
+                            Log.e("updateEvent", ex.toString());
                         }
                     }
                 },
@@ -681,7 +685,7 @@ public class BeaconData {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // Connection error, report it in the log
-                        System.err.println(error);
+                        Log.e("updateEvent", error.toString());
                     }
                 });
 
