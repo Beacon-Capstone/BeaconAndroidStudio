@@ -1,7 +1,6 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -124,7 +123,6 @@ public class MapFragment extends Fragment implements
                     googleMap = mMap;
                     googleMap.setMyLocationEnabled(true);
                     googleMap.setMinZoomPreference(9);
-                    googleMap.setMaxZoomPreference(17);
                     googleMap.getUiSettings().setCompassEnabled(false);
                     googleMap.getUiSettings().setRotateGesturesEnabled(false);
                     googleMap.getUiSettings().setZoomControlsEnabled(true);
