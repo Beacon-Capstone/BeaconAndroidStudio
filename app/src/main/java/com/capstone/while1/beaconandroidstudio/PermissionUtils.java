@@ -6,14 +6,17 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 
+import java.lang.reflect.Method;
+
+import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.provider.Settings.Secure;
-import static android.provider.Settings.SettingNotFoundException;
 
 /**
  * Utility class for access to runtime permissions.
@@ -57,14 +60,17 @@ abstract class PermissionUtils {
         int locationMode = 0;
         try {
             locationMode = Secure.getInt(context.getContentResolver(), Secure.LOCATION_MODE);
+            Object connectivityService = context.getSystemService(CONNECTIVITY_SERVICE);
+            ConnectivityManager cm = (ConnectivityManager) connectivityService;
 
-        } catch (SettingNotFoundException e) {
+            Class<?> c = Class.forName(cm.getClass().getName());
+            Method m = c.getDeclaredMethod("getMobileDataEnabled");
+            m.setAccessible(true);
+            return (Boolean) m.invoke(cm) && (locationMode != Secure.LOCATION_MODE_OFF);
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-
-        return locationMode != Secure.LOCATION_MODE_OFF;
-
     }
 
     /**

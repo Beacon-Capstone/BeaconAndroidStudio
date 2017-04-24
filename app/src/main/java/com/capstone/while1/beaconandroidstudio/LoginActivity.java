@@ -154,7 +154,6 @@ public class LoginActivity extends AppCompatActivity {
      */
     //goToLoginPage() is similar
     public void goToRegisterPage(View v) {
-        this.finish();
         startActivity(new Intent(this, RegisterActivity.class));
     }
 
