@@ -9,9 +9,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static android.content.Context.MODE_PRIVATE;
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
 import static com.capstone.while1.beaconandroidstudio.R.id;
@@ -607,14 +606,6 @@ public class MapFragment extends Fragment implements
                 startLocationUpdates();
             }
         }
-//        createMarker(new Event(0, 1, "Awesome Event","Once upon a time akjsdf;lkajsdf;lkjas jkasjdf ;lkajs dfl;kajs dflkj asdl;kfj al;skdjf la;sk jdfl;akjs dflkasj df;lkaj sdfl;kaj sdfl;akj sdfI killed a dinosaur and captured a picachu and it was super fun i don't care if i misplled something aaron u suck at this game. Drop the mic."
-//        , "idk", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude() + .01, 200, "idk", false));
-//        ArrayList<Event> events = BeaconData.getEvents();
-//        if (events != null) {
-//            for (Event event : events) {
-//                createMarker(event);
-//            }
-//        }
 
         ////////////////////////////
         // Initiate BeaconData Class
@@ -670,8 +661,7 @@ public class MapFragment extends Fragment implements
                                                        Log.i("Download Events", "Success!");
 
                                                        // Set a timer to update BeaconData periodically
-                                                       SharedPreferences sp = getContext().getSharedPreferences("usersettings", MODE_PRIVATE);
-                                                       int eventUpdateTime = sp.getInt("eventRefreshInterval", 5000);
+                                                       SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
                                                        Timer timer = new Timer();
                                                        timer.schedule(new TimerTask() {
                                                            @Override
@@ -681,7 +671,7 @@ public class MapFragment extends Fragment implements
                                                                Log.i("Update", "Update Events Called at Location: " + lat + ", " + lng);
                                                                BeaconData.downloadUpdates((float)mCurrentLocation.getLatitude(), (float)mCurrentLocation.getLongitude());
                                                            }
-                                                       }, 7500, eventUpdateTime);
+                                                       }, 7500, Integer.parseInt(sp.getString("eventRefreshInterval", "5")) * 1000);
 
                                                    }
                                                }, (float)mCurrentLocation.getLatitude(),
@@ -746,9 +736,11 @@ public class MapFragment extends Fragment implements
     public void newUserCircle() {
         if (isUserCircleVisible())
             userCircle.remove();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String radius = sp.getString("eventRadius", "1");
         CircleOptions options = new CircleOptions()
                 .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
-                .radius(milesToMeters(30))
+                .radius(milesToMeters(Double.parseDouble(radius)))
                 .fillColor(0x309392F2)
                 .strokeWidth(0);
         this.userCircle = googleMap.addCircle(options);
