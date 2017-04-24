@@ -406,6 +406,7 @@ public class BeaconData {
         try {
             Event event = new Event();
             event.id = jsonObject.getInt("id");
+            event.name = jsonObject.getString("name");
             event.creatorId = jsonObject.getInt("creatorId");
             event.name = jsonObject.getString("name");
             event.deleted = jsonObject.getBoolean("deleted");
@@ -506,7 +507,9 @@ public class BeaconData {
                                     if (event.deleted) {
                                         // Remove from local database
                                         int indexToDelete = getEventIndex(event.id);
-                                        eventData.remove(indexToDelete);
+                                        if (indexToDelete == -1) {
+                                            eventData.remove(indexToDelete);
+                                        }
                                     } else {
                                         // The event was not deleted...
                                         if (!eventExists(event.id)) {
