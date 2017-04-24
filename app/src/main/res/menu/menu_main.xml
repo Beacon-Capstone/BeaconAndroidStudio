@@ -5,7 +5,4 @@
         android:icon="@drawable/ic_settings_white_48dp"
         android:title="@string/action_settings"
         compat:showAsAction="always" />
-    <item
-        android:id="@+id/open_list_view"
-        android:icon="@drawable/googleg_standard_color_18"/>
 </menu>
