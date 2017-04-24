@@ -57,6 +57,8 @@ public class RegisterActivity extends AppCompatActivity {
         }
         else {
             final Button registerButton = (Button) findViewById(R.id.registerButton);
+            final TextView loginLink = (TextView) findViewById(R.id.loginPageLink);
+            loginLink.setClickable(false); //User should not be able to go to register at this time
             registerButton.setClickable(false); //don't let user spam register button
             final ProgressBar registerSpinner = (ProgressBar) findViewById(R.id.registerSpinner);
             registerSpinner.setVisibility(View.VISIBLE);
@@ -97,6 +99,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                     registerSpinner.setVisibility(View.GONE);
                     registerButton.setClickable(true);
+                    loginLink.setClickable(true); //User should be able to go to register at this time
                 }
             });
 
