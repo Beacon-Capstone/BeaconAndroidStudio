@@ -2,13 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Notification Settings">
         <ListPreference
-            android:title="Notification Range"
-            android:summary="How far away should we check for events around you?."
-            android:entryValues="@array/radius_values"
-            android:entries="@array/radius_headings"
-            android:key="eventRadius"
             android:id="@+id/eventRadius"
-            android:defaultValue="1"/>
+            android:defaultValue="1"
+            android:entries="@array/radius_headings"
+            android:entryValues="@array/radius_values"
+            android:key="eventRadius"
+            android:summary="How far away should we check for events around you?"
+            android:title="Notification Range" />
 
         <ListPreference
             android:title="Notification Frequency"
