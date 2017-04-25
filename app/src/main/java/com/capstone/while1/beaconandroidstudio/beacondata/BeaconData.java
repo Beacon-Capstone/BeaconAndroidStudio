@@ -33,7 +33,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://113f6345.ngrok.io";
+    private static String restAPIDomain = "http://1b8950ef.ngrok.io";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
@@ -547,7 +547,7 @@ public class BeaconData {
 
                                     lastUpdatedTime = jobj.getString("currentServerTime");
 
-                                    // Make sure to add it to the notification list...
+                                    // Make sure to add it to the handleNotifications list...
                                     updatedEvents.add(event);
                                 }
                             } else {
@@ -622,7 +622,7 @@ public class BeaconData {
     public static void deleteEvent(final Integer id) {
         // Remove from the server first
         // If successful, remove locally
-        // Send a notification for the successful deletion
+        // Send a handleNotifications for the successful deletion
         String queryString = generateQueryString("token", loginToken);
         String uri = restAPIDomain + "/api/Events/" + id + queryString;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE,

@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         notification = new NotificationCompat.Builder(this);
-        notification.setAutoCancel(true); //deletes notification after u click on it
+        notification.setAutoCancel(true); //deletes handleNotifications after u click on it
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new OnClickListener() {
@@ -307,27 +307,27 @@ public class MainActivity extends AppCompatActivity {
 
     //commenting this out temporarily to test in loginactivity (because i can't login)
 //    public void notificationExample(View view) {
-//        notification.setSmallIcon(R.mipmap.ic_launcher);
-//        notification.setTicker("This is the ticker");
-//        notification.setWhen(System.currentTimeMillis());
-//        notification.setContentTitle("BeaconApp Test");
-//        notification.setContentText("New event: play with SANICS at speaker circle!");
+//        handleNotifications.setSmallIcon(R.mipmap.ic_launcher);
+//        handleNotifications.setTicker("This is the ticker");
+//        handleNotifications.setWhen(System.currentTimeMillis());
+//        handleNotifications.setContentTitle("BeaconApp Test");
+//        handleNotifications.setContentText("New event: play with SANICS at speaker circle!");
 //    //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
-//        notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+//        handleNotifications.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
 //
 //        Intent intent = new Intent(this, MainActivity.class);
 //        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        notification.setContentIntent(pendingIntent);
+//        handleNotifications.setContentIntent(pendingIntent);
 //
 //        final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 //
 //        final Handler handler = new Handler();
 //
-//        //do notification after 10 seconds (testing)
+//        //do handleNotifications after 10 seconds (testing)
 //        handler.postDelayed(new Runnable() {
 //            @Override
 //            public void run() {
-//                nm.notify(l33tHacks, notification.build());
+//                nm.notify(l33tHacks, handleNotifications.build());
 //                MainActivity.debugPrint("SENT NOTIFICATION!");
 //            }
 //        }, 10000);

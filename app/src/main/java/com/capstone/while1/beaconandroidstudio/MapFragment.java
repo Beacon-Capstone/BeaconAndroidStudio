@@ -14,9 +14,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -96,6 +96,7 @@ public class MapFragment extends Fragment implements
     private boolean downvote;
     private Circle userCircle;
     private boolean isPaused = false;
+    private Handler handler = new Handler();
 
     public MapFragment() {
         mapFragment = this;
@@ -526,34 +527,28 @@ public class MapFragment extends Fragment implements
         mGoogleApiClient.disconnect();
     }
 
-    /**
-     * Runs when a GoogleApiClient object successfully connects.
-     */
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            PermissionUtils.PermissionDeniedDialog
-                    .newInstance(true).show(getFragmentManager(), "dialog");
-        } else {
-            if (mCurrentLocation == null) {
-                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                updateMap(mCurrentLocation);
-            }
-            if (mRequestingLocationUpdates) {
-                Log.i(TAG, "in onConnected(), starting location updates");
-                startLocationUpdates();
-            }
-        }
+    private void initiateBeaconData() {
 
         ////////////////////////////
         // Initiate BeaconData Class
 
         BeaconData.setEventUpdateHandler(new BeaconConsumer<ArrayList<Event>>() {
+
             @Override
             public void accept(ArrayList<Event> updatedEvents) {
                 Log.i("Events Updated", "Starting to process update batch...");
                 googleMap.clear();
                 newUserCircle();
+
+                boolean shouldShowEventDetails = updatedEvents.size() == 1;
+                if (updatedEvents.size() == 1) {
+                    // Handle notifications
+                    // Event was just created
+                }
+                else {
+                    // Too many, so just give a generic message
+
+                }
 
                 ArrayList<Event> events = BeaconData.getEvents();
                 if (events != null) {
@@ -628,11 +623,13 @@ public class MapFragment extends Fragment implements
 
         // End initiate BeaconData Class
         ////////////////////////////////
+    }
+
+    private void initiateNotificationHandling() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
         String refreshInterval = sp.getString("eventRefreshInterval", "2");
         float refreshIntervalF = Float.parseFloat(refreshInterval); // In minutes
 
-        final Handler handler = new Handler();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -644,45 +641,105 @@ public class MapFragment extends Fragment implements
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
                     String radiusInMiles = sp.getString("EVENT_RADIUS", "1");
                     float radiusInMilesAsFloat = Float.parseFloat(radiusInMiles);
-                    notification(handler, BeaconData.getEventsWithinDistance((float)radiusInMilesAsFloat * 1609, (float)currLocation.getLatitude(), (float)currLocation.getLongitude()).size());
+                    handleNotifications(BeaconData.getEventsWithinDistance(radiusInMilesAsFloat * 1609, (float)currLocation.getLatitude(), (float)currLocation.getLongitude()));
                 }
             }
         }, 0, (int)(refreshIntervalF * 60 * 1000));
     }
 
+    /**
+     * Runs when a GoogleApiClient object successfully connects.
+     */
+    @Override
+    public void onConnected(Bundle connectionHint) {
 
-    public void notification(Handler handler, int numEvents) {
-        if (numEvents == 0) {
-            return;
+        /////////////////////////////
+        // Initiate Location Services
+
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.PermissionDeniedDialog
+                    .newInstance(true).show(getFragmentManager(), "dialog");
         }
-        final NotificationCompat.Builder notification;
 
-        notification = new NotificationCompat.Builder(this.getActivity());
-        notification.setAutoCancel(true); //deletes notification after u click on it
+        //////////////////////////////////////////////////////////////
+        // Initiate BeaconData and the Map When First Location Arrives
 
-        notification.setSmallIcon(R.mipmap.ic_launcher);
-        notification.setTicker("This is the ticker");
-        notification.setWhen(System.currentTimeMillis());
-        notification.setContentTitle("Beacon Events");
-        notification.setContentText("There are events in your area.");
-        //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
-        notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+        final Timer locationWaiter = new Timer();
+        locationWaiter.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                if (mCurrentLocation != null) {
+                    // First location has arrived
+                    locationWaiter.cancel();
+                    initiateBeaconData();
 
-        Intent intent = new Intent(this.getContext(), MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setContentIntent(pendingIntent);
+                    // Execute the map UI update on the main thread because it is a UI change
+                    Handler uiHandler = new Handler(getContext().getMainLooper());
+                    uiHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateMap(mCurrentLocation);
+                        }
+                    });
 
-        final NotificationManager nm = (NotificationManager) this.getActivity().getSystemService(this.getActivity().NOTIFICATION_SERVICE);
+                    if (mRequestingLocationUpdates) {
+                        Log.i(TAG, "in onConnected(), starting location updates");
+                        startLocationUpdates();
+                    }
+                }
+                else {
+                    // Wait longer...
+                }
+            }
+        }, 0, 100);
 
-        MainActivity.debugPrint("sending notification in 10 seconds...");
-        //do notification after 10 seconds => tested and it works if the app is running in background
-        // if they actually quit/close the app rather than just hitting home button or locking screen the notification does not appear
+        /////////////////////////
+        // Initiate Notifications
+
+        initiateNotificationHandling();
+    }
+
+    public void sendNotification(Handler handler, String title, String message)  {
+        if (!isAppOnForeground()) {
+            final NotificationCompat.Builder notification;
+
+            notification = new NotificationCompat.Builder(this.getActivity());
+            notification.setAutoCancel(true); //deletes handleNotifications after u click on it
+
+            notification.setSmallIcon(R.mipmap.ic_launcher);
+            notification.setTicker("This is the ticker");
+            notification.setWhen(System.currentTimeMillis());
+            notification.setContentTitle(title);
+            notification.setContentText(message);
+            //i assumed show lights would have the lights on the android device flash or maybe the screen wakes up but nothing :( at least sound and vibrate are working
+            notification.setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS | Notification.DEFAULT_VIBRATE);
+
+            Intent intent = new Intent(this.getContext(), MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            notification.setContentIntent(pendingIntent);
+
+            final NotificationManager nm = (NotificationManager) this.getActivity().getSystemService(this.getActivity().NOTIFICATION_SERVICE);
+
+            MainActivity.debugPrint("sending handleNotifications in 10 seconds...");
+            nm.notify(MainActivity.l33tHacks, notification.build());
+        }
+    }
+
+    public void handleNotifications(final ArrayList<Event> events) {
+        //do handleNotifications after 10 seconds => tested and it works if the app is running in background
+        // if they actually quit/close the app rather than just hitting home button or locking screen the handleNotifications does not appear
         handler.post(new Runnable() {
             @Override
             public void run() {
                 if (! isAppOnForeground()) {
-                    nm.notify(MainActivity.l33tHacks, notification.build());
-                    MainActivity.debugPrint("SENT NOTIFICATION!");
+                    if (events.size() == 1) {
+                        Event event = events.get(0);
+                        sendNotification(handler, event.name, event.description);
+                    } else {
+                        // Print off everything!!!
+                        sendNotification(handler, "Events are nearby", "There are events in your area.");
+                    }
                 }
             }
         });
