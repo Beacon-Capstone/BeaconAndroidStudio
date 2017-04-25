@@ -493,17 +493,22 @@ public class MapFragment extends Fragment implements
 
     private boolean isAppOnForeground() {
         Context context = this.getContext();
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        if (appProcesses == null) {
-            return false;
-        }
-        final String packageName = context.getPackageName();
-        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && appProcess.processName.equals(packageName)) {
-                return true;
+
+        if (context != null) {
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+            if (appProcesses == null) {
+                return false;
+            }
+            final String packageName = context.getPackageName();
+            for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+                if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && appProcess.processName.equals(packageName)) {
+                    return true;
+                }
             }
         }
+
+        // Couldn't find a match, so the app is in the background...
         return false;
     }
 
@@ -644,7 +649,7 @@ public class MapFragment extends Fragment implements
                     handleNotifications(BeaconData.getEventsWithinDistance(radiusInMilesAsFloat * 1609, (float)currLocation.getLatitude(), (float)currLocation.getLongitude()));
                 }
             }
-        }, 0, (int)(refreshIntervalF * 60 * 1000));
+        }, 0, (int)(refreshIntervalF * 1000 * 60));
     }
 
     /**
@@ -700,7 +705,7 @@ public class MapFragment extends Fragment implements
         initiateNotificationHandling();
     }
 
-    public void sendNotification(Handler handler, String title, String message)  {
+    public void sendNotification(String title, String message)  {
         if (!isAppOnForeground()) {
             final NotificationCompat.Builder notification;
 
@@ -735,10 +740,10 @@ public class MapFragment extends Fragment implements
                 if (! isAppOnForeground()) {
                     if (events.size() == 1) {
                         Event event = events.get(0);
-                        sendNotification(handler, event.name, event.description);
+                        sendNotification("Event Nearby: " + event.name, event.description);
                     } else {
                         // Print off everything!!!
-                        sendNotification(handler, "Events are nearby", "There are events in your area.");
+                        sendNotification("Events are nearby", "There are events in your area.");
                     }
                 }
             }

@@ -6,9 +6,7 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -21,10 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.concurrent.Callable;
 
 public class BeaconData {
@@ -33,7 +28,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://1b8950ef.ngrok.io";
+    private static String restAPIDomain = "http://ec2-54-147-250-96.compute-1.amazonaws.com:5001";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
@@ -352,7 +347,7 @@ public class BeaconData {
         for (int i = 2; i < strings.length; ++i) {
             if (i % 2 == 0) {
                 // Parameter name detected
-                sb.append("&" + strings[i] + "=");
+                sb.append("&").append(strings[i]).append("=");
             } else {
                 // Value detected
                 sb.append(strings[i]);
