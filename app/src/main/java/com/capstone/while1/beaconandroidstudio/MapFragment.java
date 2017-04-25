@@ -788,16 +788,19 @@ public class MapFragment extends Fragment implements
     }
 
     public void newUserCircle() {
-        if (isUserCircleVisible())
-            userCircle.remove();
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String radius = sp.getString("eventRadius", "1");
-        CircleOptions options = new CircleOptions()
-                .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
-                .radius(milesToMeters(Double.parseDouble(radius)))
-                .fillColor(0x309392F2)
-                .strokeWidth(0);
-        this.userCircle = googleMap.addCircle(options);
+        // Ensure that this only gets activated when in view...beac
+        if (isPaused == false) {
+            if (isUserCircleVisible())
+                userCircle.remove();
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String radius = sp.getString("eventRadius", "1");
+            CircleOptions options = new CircleOptions()
+                    .center(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                    .radius(milesToMeters(Double.parseDouble(radius)))
+                    .fillColor(0x309392F2)
+                    .strokeWidth(0);
+            this.userCircle = googleMap.addCircle(options);
+        }
     }
 
     public boolean isUserCircleVisible() {
