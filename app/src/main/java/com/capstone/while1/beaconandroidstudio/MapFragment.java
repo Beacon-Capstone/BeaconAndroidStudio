@@ -1,10 +1,12 @@
 package com.capstone.while1.beaconandroidstudio;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -58,6 +60,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -463,6 +466,7 @@ public class MapFragment extends Fragment implements
     @Override
     public void onStart(){
         super.onStart();
+        isPaused = false;
         if (!PermissionUtils.isLocationEnabled(getContext())
                 || ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -474,6 +478,8 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onResume(){
+        isPaused = false;
+
         super.onResume();
         if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
@@ -482,6 +488,22 @@ public class MapFragment extends Fragment implements
                     .newInstance(true).show(getFragmentManager(), "dialog");
         }
         updateMap(mCurrentLocation);
+    }
+
+    private boolean isAppOnForeground() {
+        Context context = this.getContext();
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+        if (appProcesses == null) {
+            return false;
+        }
+        final String packageName = context.getPackageName();
+        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && appProcess.processName.equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -498,7 +520,7 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onStop() {
-        isPaused = false;
+        isPaused = true;
 
         super.onStop();
         mGoogleApiClient.disconnect();
@@ -606,13 +628,16 @@ public class MapFragment extends Fragment implements
 
         // End initiate BeaconData Class
         ////////////////////////////////
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String refreshInterval = sp.getString("eventRefreshInterval", "2");
+        float refreshIntervalF = Float.parseFloat(refreshInterval); // In minutes
 
         final Handler handler = new Handler();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (! isPaused) {
+                if (! isAppOnForeground()) {
                     Log.i("notificationHandler", "Handling notifications.");
                     Location currLocation = MapFragment.mapFragment.getCurrentLocation();
                     PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -622,7 +647,7 @@ public class MapFragment extends Fragment implements
                     notification(handler, BeaconData.getEventsWithinDistance((float)radiusInMilesAsFloat * 1609, (float)currLocation.getLatitude(), (float)currLocation.getLongitude()).size());
                 }
             }
-        }, 0, 1000 * 5);
+        }, 0, (int)(refreshIntervalF * 60 * 1000));
     }
 
 
@@ -652,13 +677,16 @@ public class MapFragment extends Fragment implements
         MainActivity.debugPrint("sending notification in 10 seconds...");
         //do notification after 10 seconds => tested and it works if the app is running in background
         // if they actually quit/close the app rather than just hitting home button or locking screen the notification does not appear
-        handler.postDelayed(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
-                nm.notify(MainActivity.l33tHacks, notification.build());
-                MainActivity.debugPrint("SENT NOTIFICATION!");
+                if (! isAppOnForeground()) {
+                    nm.notify(MainActivity.l33tHacks, notification.build());
+                    MainActivity.debugPrint("SENT NOTIFICATION!");
+                }
             }
-        }, 10000);
+        });
+
     }
 
     @Override
