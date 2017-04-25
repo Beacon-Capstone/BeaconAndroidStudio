@@ -28,7 +28,7 @@ public class BeaconData {
      */
     private static final int DEFAULT_MILES_FOR_EVENTS = 10;
     private static final String CREDENTIALS_FILE_NAME = "credentials.txt";
-    private static String restAPIDomain = "http://ec2-54-147-250-96.compute-1.amazonaws.com:5001";
+    private static String restAPIDomain = "http://34.203.209.225:5001";
     private static String loginToken = null;
     private static ArrayList<Event> eventData = null;
     private static String lastUpdatedTime = null;
